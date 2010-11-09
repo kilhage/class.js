@@ -90,6 +90,7 @@ $.extend(C, {
   },
 
   /**
+   * Adds methods to a class prototype
    *
    * @param src {class}: The Class that the methods should be added to
    * @param prop {object}: New methods
@@ -98,30 +99,17 @@ $.extend(C, {
    * @return {class} Modified class
    */
   addMethods: function( src, prop, classToModify ) {
-    // If "classToModify" isn't passed, modify "src" insead
+    // If "classToModify" isn't set, modify "src" insead
     classToModify = classToModify || src;
     
+    initializing = true;
+    
+    var _parent = src.prototype,
     // Instantiate a base class (but only create the instance,
     // don't run the init constructor)
-    initializing = true;
-    var prototype = new src();
+    prototype = new src();
     initializing = false;
     
-    classToModify.prototype = this._addMethods( prototype, prop, src.prototype );
-    return classToModify;
-  },
-
-  /**
-   *
-   * @param prototype {class}: Parent class instance
-   * @param prop {object}: New methods
-   * @param _parent {class}: Parent prototype
-   *
-   * @return {object} Merged prototype
-   */
-  _addMethods: function( prototype, prop, _parent ) {
-    // Do not require that a parent class is used
-    _parent = _parent || {};
     // Copy the properties over onto the new prototype
     for ( var name in prop ) {
       // Check if we're overwriting an existing function using a parent method
@@ -147,7 +135,9 @@ $.extend(C, {
         // If we aren't overwriting a function with a function, simply replace/set it
         prop[ name ];
     }
-    return prototype;
+    classToModify.prototype = prototype;
+    
+    return classToModify;
   }
   
 });
