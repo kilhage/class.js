@@ -1,52 +1,31 @@
-/*
+/*--------------------------------------------*
  * Useful extensions when
  * you are creating your own
  * javascript objects/classes
- *
+ *--------------------------------------------*
  * Orgins from:
  * Simple JavaScript Inheritance and makeClass
  * by John Resig http://ejohn.org/
- *
- * Integrated with jQuery and added functionality by Emil Kilhage
- */
+ *--------------------------------------------*
+ * Integrated with jQuery and added
+ * functionality by Emil Kilhage
+ *--------------------------------------------*
+ * Last Update: 2010-11-10 00:59:52
+ *--------------------------------------------*/
 (function( $ ) {
 
 var initializing = false,
 _fnSearchFn = function(){xyz;},
-fnSearch = /xyz/.test( _fnSearchFn ),
-// Cached RegExp object for the function searchs
-_fnSearchs = {};
+fnSearch = /xyz/.test( _fnSearchFn ) ? /\b_parent\b/ : /.*/,
+B,
 
-$.extend({
-
-  // Shortcut $.Class.create function
-  Class: function( proto ) {
-    return C.create( proto );
-  },
-
-  /**
-   * Checks if eg a variable is used in a function
-   *
-   * If the bowser isn't supporting this kind of
-   * regexp tasks it will allways return true
-   */
-  fnSearch: function( search, fn ) {
-    return ( fnSearch ?
-      // Do we have a cached RegExp object?
-       _fnSearchs[search] ?
-        // Take the object from cache
-         _fnSearchs[search] :
-        // Cache the RegExp object
-         _fnSearchs[search] = new RegExp("\\b" + search + "\\b") :
-       /.*/ ).test( fn );
-  }
-  
-});
-
-var C = $.Class;
+// Shortcut $.Class.create function
+C = $.Class = function( prop ) {
+  return C.create( prop );
+};
 
 $.extend(C, {
-  
+
   /**
    * makeClass - By John Resig (MIT Licensed)
    * http://ejohn.org/
@@ -59,7 +38,7 @@ $.extend(C, {
    * @return {class}
    */
   makeClass: function() {
-    var ret = function( args ) {
+    return function( args ) {
       if ( this instanceof arguments.callee ) {
         // If not executing the "extend" function and an init method exist
         if ( ! initializing && typeof this.init === "function" ) {
@@ -71,9 +50,6 @@ $.extend(C, {
         return new arguments.callee( arguments );
       }
     };
-    // Enforce the constructor to be what we expect
-    ret.constructor = ret;
-    return ret;
   },
 
   /**
@@ -86,11 +62,11 @@ $.extend(C, {
    * @return {class} Created class
    */
   create: function( prop ) {
-    return Class.extend( prop );
+    return B.extend( prop );
   },
 
   /**
-   * Adds methods to a class prototype
+   * Adds methods to a class' prototype
    *
    * @param src {class}: The Class that the methods should be added to
    * @param prop {object}: New methods
@@ -114,7 +90,7 @@ $.extend(C, {
     for ( var name in prop ) {
       // Check if we're overwriting an existing function using a parent method
       prototype[ name ] = typeof _parent[ name ] === "function" &&
-        typeof prop[ name ] === "function" && $.fnSearch( "_parent", prop[ name ] ) ?
+        typeof prop[ name ] === "function" && fnSearch.test( prop[ name ] ) ?
         (function(name, fn) {
           // Rewrite the function and make it possible to call the parent function
           return function() {
@@ -142,27 +118,35 @@ $.extend(C, {
   
 });
 
-// The base Class implementation (does nothing)
-var Class = C.makeClass();
+// The base Class implementation (does nothing) and add functions
+B = $.extend( C.makeClass(), {
+  // Create the extend method that makes it possible to extend objects
+  extend: function( prop ) {
+    // Create a new class
+    var Class = C.makeClass(), n;
 
-// Create the extend method that makes it possible to extend objects
-Class.extend = function( prop ) {
-  // Create a new class
-  var NewClass = C.makeClass();
+    // Add functions
+    for( n in this ) {
+      if( typeof this[ n ] === "function" ) {
+        Class[ n ] = this[ n ];
+      }
+    }
 
-  // Populate our constructed prototype object
-  C.addMethods( this, prop, NewClass );
+    // Enforce the constructor to be what we expect
+    Class.constructor = Class;
 
-  // And make this class extendable
-  NewClass.extend = arguments.callee;
+    // Populate our constructed prototype object
+    C.addMethods( this, prop, Class );
+
+    return Class;
+  },
   
   // Create a alias for the $.Class.addMethods method
   // to be able to add methods to a class with a nice syntax
-  NewClass.addMethods = function( prop ) {
+  addMethods :function( prop ) {
     return C.addMethods( this, prop );
-  };
-
-  return NewClass;
-};
+  }
+  
+});
 
 }( jQuery ));
