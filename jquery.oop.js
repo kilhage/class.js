@@ -10,21 +10,15 @@
  * Integrated with jQuery and added
  * functionality by Emil Kilhage
  *--------------------------------------------*
- * Last Update: 2010-11-10 00:59:52
+ * Last Update: 2010-11-13 23:09:31
  *--------------------------------------------*/
 (function( $ ) {
 
 var initializing = false,
 _fnSearchFn = function(){xyz;},
 fnSearch = /xyz/.test( _fnSearchFn ) ? /\b_parent\b/ : /.*/,
-B,
 
-// Shortcut $.Class.create function
-C = $.Class = function( prop ) {
-  return C.create( prop );
-};
-
-$.extend(C, {
+C = $.Class = $.extend( function( prop ) { return C.create( prop ); }, {
 
   /**
    * makeClass - By John Resig (MIT Licensed)
@@ -76,6 +70,7 @@ $.extend(C, {
    */
   addMethods: function( src, prop, classToModify ) {
     // If "classToModify" isn't set, modify "src" insead
+    
     classToModify = classToModify || src;
     
     initializing = true;
@@ -94,6 +89,7 @@ $.extend(C, {
         (function(name, fn) {
           // Rewrite the function and make it possible to call the parent function
           return function() {
+            
             var tmp = this._parent;
 
             // Add a new ._parent() method that is the same method
@@ -116,17 +112,18 @@ $.extend(C, {
     return classToModify;
   }
   
-});
+}),
 
 // The base Class implementation (does nothing) and add functions
 B = $.extend( C.makeClass(), {
   // Create the extend method that makes it possible to extend objects
-  extend: function( prop ) {
+  extend: function( prop, extendAll ) {
     // Create a new class
-    var Class = C.makeClass(), n;
+
+    var Class = C.makeClass(), n, methods = extendAll ? this : baseMethods;
 
     // Add functions
-    for( n in this ) {
+    for( n in methods ) {
       if( typeof this[ n ] === "function" ) {
         Class[ n ] = this[ n ];
       }
@@ -137,7 +134,7 @@ B = $.extend( C.makeClass(), {
 
     // Populate our constructed prototype object
     C.addMethods( this, prop, Class );
-
+    
     return Class;
   },
   
@@ -147,6 +144,12 @@ B = $.extend( C.makeClass(), {
     return C.addMethods( this, prop );
   }
   
-});
+}), baseMethods = {}, m;
 
-}( jQuery ));
+for( m in B ) {
+  if( typeof B[ m ] === "function" ) {
+    baseMethods[ m ] = m;
+  }
+}
+
+})( jQuery );
