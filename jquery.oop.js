@@ -10,7 +10,7 @@
  * Integrated with jQuery and added
  * functionality by Emil Kilhage
  *--------------------------------------------*
- * Last Update: 2010-11-14 03:51:18
+ * Last Update: 2010-11-14 04:00:14
  *--------------------------------------------*/
 (function( $ ) {
 

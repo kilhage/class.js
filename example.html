@@ -4,77 +4,105 @@
     <title>jQuery - OOP</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <script src="http://code.jquery.com/jquery.js" type="text/javascript"></script>
-    <script src="jquery.oop.js" type="text/javascript"></script>
+    <link type="text/css" rel="stylesheet" href="http://syntaxhighlighter.googlecode.com/svn-history/r86/trunk/Styles/SyntaxHighlighter.css"></link>
+    <script language="javascript" src="http://syntaxhighlighter.googlecode.com/svn-history/r86/trunk/Scripts/shCore.js"></script>
+    <script language="javascript" src="http://syntaxhighlighter.googlecode.com/svn-history/r86/trunk/Scripts/shBrushJScript.js"></script>
+    <script src="jquery.oop.min.js" type="text/javascript"></script>
     <script type="text/javascript">
+      
+var code = function(){
 
-    var First = $.Class({
+  var First = $.Class({
 
-      FirstClassName: "First",
+    FirstClassName: "First",
 
-      init: function( message ) {
-        this.message = message || "";
-        this.insert();
-      },
+    init: function( message ) {
+      this.message = message || "";
+      this.insert();
+    },
 
-      insert: function() {
-        this.beforeInsert();
-        $('div').html( this.message );
-      },
+    insert: function() {
+      this.beforeInsert();
+      $('#message').html( this.message );
+    },
 
-      beforeInsert: function(){
-        this.message = this.message + " :: " + this.FirstClassName;
-      }
+    beforeInsert: function(){
+      this.message = this.message + " :: " + this.FirstClassName;
+    }
+
+  });
+
+  var Second = First.extend({
+
+    init: function() {
+
+    }
+
+  });
+
+  Second.addMethods({
+
+    beforeInsert: function() {
+      this.message = "Second :: " + this.message.replace( " :: " + this.FirstClassName, "" );
+    }
+
+  });
+
+  $(document).ready(function() {
+
+    $("#First").keyup(function() {
+
+      var val = $(this).val();
+
+      First( val );
+
+    });
+
+    var two = Second();
+
+    $("#Second").keyup(function() {
+
+      two.message = $(this).val();
+
+      two.insert();
 
     });
 
-    var Second = First.extend({
+  });
+  
+};
 
-      init: function() {
+$(function(){
 
-      }
+  $("#code").html(code.toString());
 
-    });
+  dp.SyntaxHighlighter.ClipboardSwf = 'http://syntaxhighlighter.googlecode.com/svn-history/r86/trunk/Scripts/clipboard.swf';
+  dp.SyntaxHighlighter.HighlightAll('code');
+  
+});
 
-    Second.addMethods({
-
-      beforeInsert: function() {
-        this.message = "Second :: " + this.message.replace( " :: " + this.FirstClassName, "" );
-      }
-
-    });
-
-    $(document).ready(function() {
-
-      $("#First").keyup(function() {
-
-        var val = $(this).val();
-
-        First( val );
-
-      });
-
-      var two = Second();
-
-      $("#Second").keyup(function() {
-
-        two.message = $(this).val();
-
-        two.insert();
-
-      });
-
-    });
+code();
 
     </script>
   </head>
   <body>
-    <center style="margin-top: 60px;">
-      <b>First:</b> <input type="text" size="50" id="First" /><br>
-      <b>Second:</b> <input type="text" size="50" id="Second" />
+    <div style="margin-left: auto;margin-right: auto; width: 800px">
 
-      <div style="background-color: lightgrey; margin: 60px; width: 350px; padding: 50px">
-        {message}
-      </div>
-    </center>
+      <div><center><h2 style="margin-bottom: 0px">jQuery - OOP</h2>Author: Emil Kilhage</center></div>
+      
+      <h3>Code:</h3>
+
+      <pre name="code" class="jscript" id="code"></pre>
+
+      <center style="margin-top: 60px;">
+
+        <b>First:</b> <input type="text" size="50" id="First" /><br>
+        <b>Second:</b> <input type="text" size="50" id="Second" />
+
+        <div style=" margin: 60px; width: 350px; padding: 50px" id="message">
+          {message}
+        </div>
+      </center>
+    </div>
   </body>
 </html>
