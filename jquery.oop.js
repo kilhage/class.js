@@ -10,7 +10,7 @@
  * Integrated with jQuery and added
  * functionality by Emil Kilhage
  *--------------------------------------------*
- * Last Update: 2010-11-14 04:00:14
+ * Last Update: 2010-11-14 05:19:33
  *--------------------------------------------*/
 (function( $ ) {
 
@@ -18,7 +18,7 @@ var initializing = false,
 _fnSearchFn = function(){xyz;},
 fnSearch = /xyz/.test( _fnSearchFn ) ? /\b_parent\b/ : /.*/,
 
-C = $.Class = $.extend( function( prop ) { return C.create( prop ); }, {
+C = $.Class = $.extend( function( prop ) {return C.create( prop );}, {
 
   /**
    * makeClass - By John Resig (MIT Licensed)
@@ -80,32 +80,37 @@ C = $.Class = $.extend( function( prop ) { return C.create( prop ); }, {
     // don't run the init constructor)
     prototype = new src();
     initializing = false;
+
+    function rewrite( name, fn ) {
+      return function() {
+
+        var tmp = this._parent;
+
+        // Add a new ._parent() method that is the same method
+        // but on the parent-class
+        this._parent = _parent[ name ];
+
+        // The method only need to be bound temporarily, so we
+        // remove it when we're done executing
+        var ret = fn.apply( this, arguments );
+        this._parent = tmp;
+
+        return ret;
+      };
+    }
     
     // Copy the properties over onto the new prototype
     for ( var name in prop ) {
-      // Check if we're overwriting an existing function using a parent method
-      prototype[ name ] = typeof _parent[ name ] === "function" &&
-        typeof prop[ name ] === "function" && fnSearch.test( prop[ name ] ) ?
-        (function(name, fn) {
+      // Avoid problems if someone should add properties to the Object/Function .prototype
+      if( prop.hasOwnProperty( name ) ) {
+        // Check if we're overwriting an existing function using a parent method
+        prototype[ name ] = typeof _parent[ name ] === "function" &&
+          typeof prop[ name ] === "function" && fnSearch.test( prop[ name ] ) ?
           // Rewrite the function and make it possible to call the parent function
-          return function() {
-            
-            var tmp = this._parent;
-
-            // Add a new ._parent() method that is the same method
-            // but on the parent-class
-            this._parent = _parent[ name ];
-
-            // The method only need to be bound temporarily, so we
-            // remove it when we're done executing
-            var ret = fn.apply( this, arguments );
-            this._parent = tmp;
-
-            return ret;
-          };
-        })( name, prop[ name ] ) :
-        // If we aren't overwriting a function with a function, simply replace/set it
-        prop[ name ];
+          rewrite( name, prop[ name ] ) :
+          // If we aren't overwriting a function with a function, simply replace/set it
+          prop[ name ];
+      }
     }
     classToModify.prototype = prototype;
     
