@@ -10,7 +10,7 @@
  * Integrated with jQuery and added
  * functionality by Emil Kilhage
  *--------------------------------------------*
- * Last Update: 2010-11-18 21:00:10
+ * Last Update: 2010-11-18 21:08:35
  *--------------------------------------------*/
 (function( $ ) {
 
@@ -78,11 +78,12 @@ C = $.Class = $.extend( function( prop ) {return C.create( prop );}, {
     var _parent = src.prototype,
     // Instantiate a base class (but only create the instance,
     // don't run the init constructor)
-    prototype = new src();
+    prototype = new src(),
+    name;
     initializing = false;
     
     // Copy the properties over onto the new prototype
-    for ( var name in prop ) {
+    for ( name in prop ) {
       // Avoid problems if someone should add properties to the Object.prototype
       if( prop.hasOwnProperty( name ) ) {
         // Check if we're overwriting an existing function using a parent method
