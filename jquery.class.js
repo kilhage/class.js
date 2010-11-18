@@ -10,7 +10,7 @@
  * Integrated with jQuery and added
  * functionality by Emil Kilhage
  *--------------------------------------------*
- * Last Update: 2010-11-18 21:08:35
+ * Last Update: 2010-11-18 21:12:37
  *--------------------------------------------*/
 (function( $ ) {
 
@@ -124,7 +124,9 @@ B = $.extend( C.makeClass(), {
   extend: function( prop, extendAll ) {
     // Create a new class
 
-    var Class = C.makeClass(), n, methods = extendAll ? this : baseMethods;
+    var Class = C.makeClass(), 
+    n, 
+    methods = extendAll ? this : baseMethods;
 
     // Add functions
     for( n in methods ) {
