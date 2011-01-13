@@ -10,7 +10,7 @@
  * Integrated with jQuery and added
  * functionality by Emil Kilhage
  *--------------------------------------------*
- * Last Update: 2010-12-10 18:14:58
+ * Last Update: 2011-01-13 13:41:0
  *--------------------------------------------*/
 (function( $ ) {
 
@@ -90,8 +90,8 @@ C = $.Class = $.extend( function( prop ) {return C.create( prop );}, {
         prototype[ name ] = typeof _parent[ name ] === "function" &&
           typeof prop[ name ] === "function" && fnSearch.test( prop[ name ] ) ?
           // Rewrite the function and make it possible to call the parent function
-          (function() {
-            return function( name, fn ) {
+          (function( name, fn ) {
+            return function() {
 
               var tmp = this._parent;
 
