@@ -1,10 +1,10 @@
 
-
 test("Basic", function(){
     
-    var val = "name";
+    var val = "name",
+    check,
     
-    var Cl = $.Class({
+    Cl = $.Class({
         
         init: function(name){
             this.name = name;
@@ -12,12 +12,52 @@ test("Basic", function(){
         
     }),
     
-    c = new Cl(val);
+    c = new Cl(val),
+
+    b = Cl(val);
     
-    equals(c.name, val);
+    try {
+        check = c.name === b.name;
+    } catch(e) {
+        $.Class.log(e.message);
+        check = false;
+    }
+    
+    ok(check, "Are the behavior of initalizing a class with/without the new keyword the same?");
+    
+    check = true;
+    try {
+        var C = $.Class();
+        var t = new C();
+        
+        C = $.Class(true);
+        t = new C;
+        
+        C = $.Class({});
+        t = new C();
+        
+        C = $.Class(true, {});
+        t = new C();
+        
+        C = $.Class();
+        t = C();
+        
+        C = $.Class(true);
+        t = C;
+        
+        C = $.Class({});
+        t = C();
+        
+        C = $.Class(true, {});
+        t = C();
+    } catch(e) {
+        $.Class.log(e.message);
+        check = false;
+    }
+    
+    ok(check, "Is it possible to create an empty class?");
     
 });
-
 
 test("Inheritance", function(){
     
@@ -25,6 +65,10 @@ test("Inheritance", function(){
         
         fn: function() {
             return "first";
+        },
+            
+        set: function(name, val){
+            this[name] = val;
         }
         
     });
@@ -33,6 +77,11 @@ test("Inheritance", function(){
         
         fn: function(){
             return "not the "+this._parent();
+        },
+        
+        newSet: function(key, value){
+            this._parent.set(key, value);
+            return value;
         }
         
     });
@@ -40,6 +89,38 @@ test("Inheritance", function(){
     var c = new Cl2();
     
     equals(c.fn(), "not the first");
+    
+    equals(c.newSet("test", "vaaalue"), c.test);
+    
+    Cl2.addMethods({
+        
+        fn: function(){
+            return this._parent()+", but added";
+        },
+        
+        fn2: function(m){
+            return this._parent.fn()+m;
+        }
+        
+    });
+    
+    c = new Cl2();
+    
+    equals(c.fn(), "not the first, but added");
+    
+    equals(c.fn2(", but fn2"), "not the first, but fn2");
+    
+    Cl2.addMethods({
+        
+        fn: function(){
+            return this._parent.fn()+" - "+this._parent.fn2(", but fn");
+        }
+        
+    });
+    
+    c = new Cl2();
+    
+    equals(c.fn(), "not the first, but added - not the first, but fn");
     
 });
 
@@ -93,4 +174,181 @@ test("Static", function(){
     
     equals(c.foo, Cl2.prototype.prop);
     
+    Cl = $.Class({
+        
+        staticFn: function(val) {
+            this.prop = val;
+        },
+        
+        prototype: {
+            
+            init: function(){
+                this.name = this.prop;
+            },
+            
+            set: function(name, val){
+                this[name] = val;
+            }
+            
+        }
+        
+    });
+    
+    Cl2 = Cl.extend({
+        
+        value: "value",
+        
+        staticFn: function() {
+            this._parent(this.value);
+            return this.prop;
+        },
+        
+        prototype: {
+            
+            prop: "prop",
+            
+            init: function() {
+                this._parent();
+                this.set("foo", this.name);
+            }
+            
+        }
+        
+    });
+    
+    c = new Cl2();
+    
+    equals(Cl2.staticFn(), Cl2.value);
+    
+    equals(c.foo, Cl2.prototype.prop);
+    
+});
+
+test("Errors", function(){
+    
+    var Cl = $.Class({
+        
+        callToUndefined: function(){
+            this._parent();
+        }
+        
+    });
+    
+    var c = new Cl();
+    
+    try {
+        c.callToUndefined();
+    } catch(e) {
+        equals(e, 
+            $.Class.log_prefix + $.Class.errors.logic_parent_call, 
+            "Does a function call to a parent method that don't exist in the parent class thows an error?"
+        );
+    }
+   
+});
+
+test("_parent maintenance", function() {
+    
+    var Cl = $.Class({
+        
+        init: function() {
+            
+        },
+        
+        fn: function(){
+            
+        }
+        
+    });
+    
+    var Cl2 = Cl.extend({
+        
+        init: function(){
+            this._parent();
+        },
+        
+        fn: function(){
+            this._parent();
+        }
+        
+    });
+    
+    var c = new Cl2();
+    
+    ok(!("_parent" in c), "Is the '_parent' property properly removed from the instance when it don't exists after a this._parent function call?");
+    
+    c._parent = true;
+    
+    c.fn();
+    
+    ok(c._parent, "Is the '_parent' property properly maintained in the instance when it exists after a this._parent function call?")
+   
+});
+
+test("Internal test", function(){
+   
+   var Cl = $.Class({
+       
+       init: function(){
+           
+       }
+       
+   }),
+   Cl2 = Cl.extend({
+       
+       init: function(){
+           this._parent();
+       },
+       
+       fn: function(){
+           
+       }
+       
+   });
+   
+   ok($.Class.is(Cl) && ! $.Class.is(function(){}), "Can $.Class.is identify classes created by and not created by the plugin?");
+  
+   ok($.Class.fnSearch.test(Cl2.prototype.init), "Can the plugin identify if a function calls a parent function");
+  
+   ok(!$.Class.fnSearch.test(Cl2.prototype.fn), "Can the plugin identify if a function don't calls a parent function");
+   
+});
+
+test("Evil", function(){
+   
+   var Cl, t, check = true,
+   tests = {
+       "true": true,
+       "false": false,
+       "null": null,
+       "undefined": undefined,
+       "\"\"": "",
+       "[]": [],
+       "NaN": NaN
+   };
+   
+   $.each(tests, function( i, v ) {
+       var b = 2, args, nargs, c, m;
+       while(b--) {
+           check = true;
+           m = "$.Class( ";
+           try {
+               args = [];
+               nargs = [];
+               for(c = 0; c <= b; c++) {
+                   args.push(v);
+                   nargs.push(i);
+               }
+               m += nargs.join(", ")+" )";
+               Cl = $.Class.apply($.Class, args);
+               t = new Cl();
+           } catch(e) {
+               check = false;
+               m += " :: error: "+ e.message;
+               $.Class.log(m);
+           }
+           ok(check, m);
+       }
+   });
+   
 });
