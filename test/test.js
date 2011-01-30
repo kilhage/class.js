@@ -258,9 +258,40 @@ test("Errors", function(){
    
 });
 
-test("_parent maintenance", function() {
+test("Internal test", function(){
+   
+   var Cl = $.Class({
+       
+       init: function(){
+           
+       }
+       
+   }),
+   Cl2 = Cl.extend({
+       
+       init: function(){
+           this._parent();
+       },
+       
+       test: function(){
+           this._parent.fn();
+       },
+       
+       fn: function(){
+           
+       }
+       
+   });
+   
+   ok($.Class.is(Cl), "Can $.Class.is identify classes created by the plugin?");
+
+   ok( ! $.Class.is(function(){}), "Can $.Class.is identify classes not created by the plugin?");
+  
+   ok($.Class.fnSearch.test(Cl2.prototype.init) && $.Class.parentFnSearch.test(Cl2.prototype.test), "Can the plugin identify if a function calls a parent function");
+  
+   ok( ! $.Class.fnSearch.test(Cl2.prototype.fn), "Can the plugin identify if a function don't calls a parent function");
     
-    var Cl = $.Class({
+    Cl = $.Class({
         
         init: function() {
             
@@ -272,7 +303,7 @@ test("_parent maintenance", function() {
         
     });
     
-    var Cl2 = Cl.extend({
+    Cl2 = Cl.extend({
         
         init: function(){
             this._parent();
@@ -296,37 +327,6 @@ test("_parent maintenance", function() {
    
 });
 
-test("Internal test", function(){
-   
-   var Cl = $.Class({
-       
-       init: function(){
-           
-       }
-       
-   }),
-   Cl2 = Cl.extend({
-       
-       init: function(){
-           this._parent();
-       },
-       
-       fn: function(){
-           
-       }
-       
-   });
-   
-   ok($.Class.is(Cl), "Can $.Class.is identify classes created by the plugin?");
-
-   ok( ! $.Class.is(function(){}), "Can $.Class.is identify classes not created by the plugin?");
-  
-   ok($.Class.fnSearch.test(Cl2.prototype.init), "Can the plugin identify if a function calls a parent function");
-  
-   ok(!$.Class.fnSearch.test(Cl2.prototype.fn), "Can the plugin identify if a function don't calls a parent function");
-   
-});
-
 test("Evil", function(){
    
    var Cl, t, check = true,
@@ -337,7 +337,8 @@ test("Evil", function(){
        "undefined": undefined,
        "\"\"": "",
        "[]": [],
-       "NaN": NaN
+       "NaN": NaN,
+       "RegExp": /_parent/
    };
    
    $.each(tests, function( i, v ) {
@@ -363,5 +364,19 @@ test("Evil", function(){
            ok(check, m);
        }
    });
+   
+});
+
+test("Bugs", function() {
+   
+   var Cl = $.Class({
+       
+       preg: /_parent/
+       
+   });
+   
+   var Cl2 = Cl.extend({});
+   
+   ok($.type(Cl.prototype.preg) === "regexp", "Are the $.Class.rewrite function only rewriting functions?")
    
 });

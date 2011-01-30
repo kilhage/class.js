@@ -88,14 +88,18 @@
             
         });
         
-        test("$.Class.initPopulator(50 functions) and $.Class.rewriteMainParent(2000 times)", function(){
-            times = 50, p = {};
+        var fns = {};
+        times = 50;
+        while(times--)
+            fns["fn"+times] = function(){};
+        
+        test("$.Class.initPopulator(50 functions) and $.Class.rewrite(20000 times)", function(){
+            var populator = $.Class.initPopulator(fns), self = {
+                test: function(){this._parent();}
+            };
+            times = 20000;
             while(times--)
-                p["fn"+times] = function(){};
-            var populator = $.Class.initPopulator(p);
-            times = 2000;
-            while(times--)
-                $.Class.rewriteMainParent(function(){}, function(){}, populator);
+                $.Class.rewrite("test", self, self, populator);
         });
         
     </script>

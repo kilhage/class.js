@@ -10,7 +10,7 @@
  * Integrated with jQuery and added
  * functionality by Emil Kilhage
  *--------------------------------------------*
- * Last Update: 2011-01-30 03:35:00
+ * Last Update: 2011-01-31 18:35:00
  *--------------------------------------------*/
 (function( $ ) {
 
@@ -22,9 +22,11 @@ prefix = "jQuery.Class :: ",
 // created by this plugin so the plugin can 
 // identify the classes in an easy way
 ID = "__is_class__",
-unique = prefix + ((new Date()).getTime()),
+unique = prefix + $.now(),
 
-fnSearch = (/\b_parent\b/).test(function(){this._parent();}) ? (/\b_parent\b/) : /.*/,
+_searchable = (/\b_parent\b/).test(function(){this._parent();}),
+fnSearch = _searchable ? (/\b_parent\b/) : /.*/,
+parentFnSearch = _searchable ? (/\b_parent\b\./) : /.*/,
 
 FUNCTION = "function",
 OBJECT = "object",
@@ -66,7 +68,7 @@ makeClass = function(){
 Base = $.extend( makeClass(), {
 
     /**
-     * Create the extend method that makes it possible to extend objects
+     * Makes it possible to extend objects
      */
     extend: function( setStatic, prop ) {
 
@@ -125,6 +127,8 @@ $.Class = function( setStatic, prop ) {
 $.extend($.Class, {
     
     fnSearch: fnSearch,
+    parentFnSearch: parentFnSearch,
+    
     
     // Error messages
     errors: {
@@ -210,58 +214,55 @@ $.extend($.Class, {
      * @return <function>
      */
     rewrite: function(name, current, parent, populator) {
-        return ((typeof current[name] === FUNCTION && 
+        return (($.type(current[name]) === FUNCTION && 
             // Check if we're overwriting an existing function using a parent method
-            (typeof parent[name] === FUNCTION || ! (name in parent)) &&
+            ($.type(parent[name]) === FUNCTION || ! (name in parent)) &&
             // Don't rewrite classes, and only rewrite functions that are calling a parent function
             ! $.Class.is(current[name]) && fnSearch.test(current[name])) ? 
             // Rewrite the function and make it possible to call the parent function
-            $.Class.rewriteMainParent(current[name], parent[name], populator) : current[name]);
-    },
-    
-    /**
-     * @param <function> fn
-     * @param <function> _parentFn
-     * @param <function> populator
-     * @return <function>
-     */
-    rewriteMainParent: function(fn, _parentFn, populator){
-        var parent_functions = populator(), name;
-        
-        _parentFn = _parentFn || function() {
-            $.Class.error("logic_parent_call");
-        };
-        
-        for ( name in parent_functions) {
-            if ( parent_functions.hasOwnProperty(name) ) {
-                _parentFn[name] = parent_functions[name];
-            }
-        }
-        
-        return function() {
-            var set_parent = ("_parent" in this), tmp = this._parent, ret;
+            (function(fn, parent, populator) {
+                parent = parent || function() {
+                    $.Class.error("logic_parent_call");
+                };
+                
+                // If the function are calling a parent function other 
+                // than itself( like this._parent.foo(); )
+                if ( parentFnSearch.test(fn) ) {
+                    // Get the parent functions from the populator callback
+                    var parent_functions = populator(), name;
+                    for ( name in parent_functions) {
+                        if ( parent_functions.hasOwnProperty(name) ) {
+                            // Add the parent functions
+                            parent[name] = parent_functions[name];
+                        }
+                    }
+                }
 
-            // Add a new ._parent() method that is the same method
-            // but on the parent-class
-            this._parent = _parentFn;
-            // Save a reference to the class instance on the parent
-            // function so the other parent functions can be called
-            this._parent._self = this;
+                return function() {
+                    var set_parent = ("_parent" in this), tmp = this._parent, ret;
 
-            // The method only need to be bound temporarily, so we
-            // remove it when we're done executing
-            ret = fn.apply( this, arguments );
-            
-            if ( set_parent ) {
-                this._parent = tmp;
-            } else {
-                try {
-                    delete this._parent;
-                } catch(e) {}
-            }
+                    // Add a new ._parent() method that is the same method
+                    // but on the parent-class
+                    this._parent = parent;
+                    // Save a reference to the class instance on the parent
+                    // function so the other parent functions can be called
+                    this._parent._self = this;
 
-            return ret;
-        };
+                    // The method only need to be bound temporarily, so we
+                    // remove it when we're done executing
+                    ret = fn.apply( this, arguments );
+
+                    if ( set_parent ) {
+                        this._parent = tmp;
+                    } else {
+                        try {
+                            delete this._parent;
+                        } catch(e) {}
+                    }
+
+                    return ret;
+                };
+            }(current[name], parent[name], populator)) : current[name]);
     },
     
     /**
@@ -286,7 +287,7 @@ $.extend($.Class, {
             if ( cache == null ) {
                 cache = {};
                 for ( key in parent ) {
-                    if ( parent.hasOwnProperty(key) && typeof parent[key] === FUNCTION ) {
+                    if ( parent.hasOwnProperty(key) && $.type(parent[key]) === FUNCTION ) {
                         cache[key] = (function(fn) {
                             return function(){
                                 return fn.apply(this._self, arguments);
