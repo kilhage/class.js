@@ -93,13 +93,21 @@
         while(times--)
             fns["fn"+times] = function(){};
         
-        test("$.Class.initPopulator(50 functions) and $.Class.rewrite(20000 times)", function(){
-            var populator = $.Class.initPopulator(fns), self = {
-                test: function(){this._parent();}
-            };
+        test("$.Class.initPopulator(50 functions) and $.Class.rewrite(20000 times), this._parent - call", function(){
+            var populator = $.Class.initPopulator(fns)
+            fns.test = function(){this._parent();}
             times = 20000;
             while(times--)
-                $.Class.rewrite("test", self, self, populator);
+                $.Class.rewrite("test", fns, fns, populator);
+        });
+        
+        test("$.Class.initPopulator(50 functions) and $.Class.rewrite(20000 times), this._parent.fn - call", function(){
+            var populator = $.Class.initPopulator(fns)
+            fns.test = function(){this._parent.fn0();}
+            times = 20000;
+            while(times--)
+                $.Class.rewrite("test", fns, fns, populator);
+            
         });
         
     </script>

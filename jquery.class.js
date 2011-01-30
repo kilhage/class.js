@@ -10,7 +10,7 @@
  * Integrated with jQuery and added
  * functionality by Emil Kilhage
  *--------------------------------------------*
- * Last Update: 2011-01-31 18:35:00
+ * Last Update: 2011-01-31 00:44:34
  *--------------------------------------------*/
 (function( $ ) {
 
@@ -45,7 +45,7 @@ BOOLEAN = "boolean",
  */
 makeClass = function(){
     function Class( args ) {
-        if ( this instanceof arguments.callee ) {
+        if ( this instanceof Class ) {
             // If not executing the "extend" function and an init method exist
             if ( ! initializing && typeof this.init === FUNCTION ) {
                 // Call the "real" constructor and apply the arguments
@@ -53,7 +53,7 @@ makeClass = function(){
             }
         } else {
             // Instantiate the class and pass the aruments
-            return new arguments.callee( arguments );
+            return new Class( arguments );
         }
     }
 
@@ -90,6 +90,7 @@ Base = $.extend( makeClass(), {
 
         if ( setStatic === true || typeof prop.prototype === OBJECT ) {
             populator = $.Class.initPopulator(this);
+            $.Class.validate(prop);
             for ( name in prop ) {
                 if( prop.hasOwnProperty(name) && name !== "prototype" ) {
                     Class[name] = $.Class.rewrite(name, prop, this, populator);
@@ -118,10 +119,14 @@ Base = $.extend( makeClass(), {
 });
 
 /**
- * Just an alias for the $.Class.Create function
+ * Simple JavaScript Inheritance
+ * By John Resig http://ejohn.org/
+ * MIT Licensed.
+ * @param <object> prop: The prototype that you want the object to have
+ * @return <function> Created class
  */
 $.Class = function( setStatic, prop ) {
-  return $.Class.create( setStatic, prop );
+  return Base.extend( setStatic, prop );
 };
 
 $.extend($.Class, {
@@ -129,10 +134,10 @@ $.extend($.Class, {
     fnSearch: fnSearch,
     parentFnSearch: parentFnSearch,
     
-    
     // Error messages
     errors: {
-        logic_parent_call: "Logic error, unable to call the parent function since it isn't defined.."
+        logic_parent_call: "Logic error, unable to call the parent function since it isn't defined..",
+        self_in_prop: "'__self__' is a preserved word used in the jQuery.Class plugin, please rename the function"
     },
     
     log_prefix: prefix,
@@ -158,17 +163,6 @@ $.extend($.Class, {
     makeClass: makeClass,
 
    /**
-    * Simple JavaScript Inheritance
-    * By John Resig http://ejohn.org/
-    * MIT Licensed.
-    * @param <object> prop: The prototype that you want the object to have
-    * @return <function> Created class
-    */
-    create: function( setStatic, prop ) {
-        return Base.extend( setStatic, prop );
-    },
-
-   /**
     * Adds methods to a class' prototype
     *
     * @param <function> src: The Class that the methods should be added to
@@ -190,6 +184,9 @@ $.extend($.Class, {
         populator = $.Class.initPopulator(parent),
         name;
         initializing = false;
+        
+        prop = prop || {};
+        $.Class.validate(prop);
 
         // Copy the properties over onto the new prototype
         for ( name in prop ) {
@@ -225,28 +222,31 @@ $.extend($.Class, {
                     $.Class.error("logic_parent_call");
                 };
                 
-                // If the function are calling a parent function other 
-                // than itself( like this._parent.foo(); )
-                if ( parentFnSearch.test(fn) ) {
-                    // Get the parent functions from the populator callback
-                    var parent_functions = populator(), name;
-                    for ( name in parent_functions) {
-                        if ( parent_functions.hasOwnProperty(name) ) {
-                            // Add the parent functions
-                            parent[name] = parent_functions[name];
+                var populate = parentFnSearch.test(fn);
+                function get() {
+                    if ( populate ) {
+                        populate = false;
+                        // Get the parent functions from the populator callback
+                        var parent_functions = populator(), name;
+                        for ( name in parent_functions) {
+                            if ( parent_functions.hasOwnProperty(name) ) {
+                                // Add the parent functions
+                                parent[name] = parent_functions[name];
+                            }
                         }
                     }
+                    return parent;
                 }
 
                 return function() {
-                    var set_parent = ("_parent" in this), tmp = this._parent, ret;
+                    var set_parent = "_parent" in this, tmp = this._parent, ret;
 
                     // Add a new ._parent() method that is the same method
                     // but on the parent-class
-                    this._parent = parent;
+                    this._parent = get();
                     // Save a reference to the class instance on the parent
                     // function so the other parent functions can be called
-                    this._parent._self = this;
+                    this._parent.__self__ = this;
 
                     // The method only need to be bound temporarily, so we
                     // remove it when we're done executing
@@ -290,7 +290,7 @@ $.extend($.Class, {
                     if ( parent.hasOwnProperty(key) && $.type(parent[key]) === FUNCTION ) {
                         cache[key] = (function(fn) {
                             return function(){
-                                return fn.apply(this._self, arguments);
+                                return fn.apply(this.__self__, arguments);
                             };
                         }(parent[key]));
                     }
@@ -298,6 +298,12 @@ $.extend($.Class, {
             }
             return cache;
         };
+    },
+    
+    validate: function(prop) {
+        if ( $.type(prop.__self__) === FUNCTION ) {
+            $.Class.error("self_in_prop");
+        }
     }
 
 });

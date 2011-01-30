@@ -236,26 +236,35 @@ test("Static", function(){
 });
 
 test("Errors", function(){
-    
-    var Cl = $.Class({
-        
-        callToUndefined: function(){
-            this._parent();
+    var check = function(name, fn, message){
+        var check = false;
+        try {
+             fn();
+        } catch(e) {
+            check = e == $.Class.log_prefix + $.Class.errors[name];
         }
+        ok(check, message);
+    };
+    
+    check("logic_parent_call", function(){
+        var Cl = $.Class({
+            callToUndefined: function(){
+                this._parent();
+            }
+        });
         
-    });
-    
-    var c = new Cl();
-    
-    try {
+        var c = new Cl();
+        
         c.callToUndefined();
-    } catch(e) {
-        equals(e, 
-            $.Class.log_prefix + $.Class.errors.logic_parent_call, 
-            "Does a function call to a parent method that don't exist in the parent class thows an error?"
-        );
-    }
-   
+        
+    }, "Does a function call to a parent method that don't exist in the parent class thows an error?");
+    
+    check("self_in_prop", function(){
+        
+        $.Class({__self__: function(){}});
+        
+    }, "The plugin should not allow functions called '__self__'");
+    
 });
 
 test("Internal test", function(){
@@ -377,6 +386,6 @@ test("Bugs", function() {
    
    var Cl2 = Cl.extend({});
    
-   ok($.type(Cl.prototype.preg) === "regexp", "Are the $.Class.rewrite function only rewriting functions?")
+   ok($.type(Cl2.prototype.preg) === "regexp", "Are the $.Class.rewrite function only rewriting functions?")
    
 });

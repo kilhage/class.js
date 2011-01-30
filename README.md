@@ -4,7 +4,7 @@
 Info
 ----------------------------
 * MIT Licensed
-* Last Updated: 2011-01-30 03:35:00
+* Last Updated: 2011-01-31 00:44:34
 
 
 Usage:
@@ -12,7 +12,7 @@ Usage:
 
 * Create a class:
 <pre>
-var YourClass = $.Class({ // --> you can also use $.Class.create(); to do the same thing...
+var YourClass = $.Class({
     
     // Constructor
     init: function( message ) {
@@ -83,4 +83,4 @@ ExtendedClass.addMethods({
 });
 </pre>
 
-* In the file example.html you can find some more examples ...
+* In the file example.html, test/test.js and test/performance.js you can find some more examples ...
