@@ -1,4 +1,15 @@
 
+log = function(m) {
+    if ( typeof window.console === "object" && typeof console.log === "function" ) {
+        var type = typeof m;
+        if ( type === "string" || type === "number") {
+            m = $.Class.log_prefix + m;
+        }
+        console.log(m);
+    }
+    return m;
+};
+
 test("Basic", function(){
     
     var val = "name",
@@ -19,7 +30,7 @@ test("Basic", function(){
     try {
         check = c.name === b.name;
     } catch(e) {
-        $.Class.log(e.message);
+        log(e.message);
         check = false;
     }
     
@@ -51,7 +62,7 @@ test("Basic", function(){
         C = $.Class(true, {});
         t = C();
     } catch(e) {
-        $.Class.log(e.message);
+        log(e.message);
         check = false;
     }
     
@@ -306,7 +317,9 @@ test("Internal test", function(){
        
    });
    
-   ok($.Class.is(Cl) && ! $.Class.is(function(){}), "Can $.Class.is identify classes created by and not created by the plugin?");
+   ok($.Class.is(Cl), "Can $.Class.is identify classes created by the plugin?");
+
+   ok( ! $.Class.is(function(){}), "Can $.Class.is identify classes not created by the plugin?");
   
    ok($.Class.fnSearch.test(Cl2.prototype.init), "Can the plugin identify if a function calls a parent function");
   
@@ -345,7 +358,7 @@ test("Evil", function(){
            } catch(e) {
                check = false;
                m += " :: error: "+ e.message;
-               $.Class.log(m);
+               log(m);
            }
            ok(check, m);
        }

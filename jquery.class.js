@@ -10,31 +10,25 @@
  * Integrated with jQuery and added
  * functionality by Emil Kilhage
  *--------------------------------------------*
- * Last Update: 2011-01-27 21:16:00
+ * Last Update: 2011-01-30 03:35:00
  *--------------------------------------------*/
 (function( $ ) {
 
 var initializing = false,
 
+prefix = "jQuery.Class :: ",
+
 // This 'ID' key will be set to 'unique' on all classes
 // created by this plugin so the plugin can 
 // identify the classes in an easy way
 ID = "__is_class__",
-unique = "jQuery.Class-" + ((new Date()).getTime()),
+unique = prefix + ((new Date()).getTime()),
 
-// Does the browser have an debug-console?
-enable_log = typeof window.console === "object" && typeof console.log === "function",
-// Internal log function
-log = function(m) {
-    if ( enable_log && $.Class.enable_log ) {
-        var type = typeof m;
-        if ( type === "string" || type === "number") {
-            m = $.Class.log_prefix + m;
-        }
-        console.log(m);
-    }
-    return m;
-},
+fnSearch = (/\b_parent\b/).test(function(){this._parent();}) ? (/\b_parent\b/) : /.*/,
+
+FUNCTION = "function",
+OBJECT = "object",
+BOOLEAN = "boolean",
 
 /**
  * makeClass - By John Resig (MIT Licensed)
@@ -51,9 +45,9 @@ makeClass = function(){
     function Class( args ) {
         if ( this instanceof arguments.callee ) {
             // If not executing the "extend" function and an init method exist
-            if ( ! initializing && typeof this.init === "function" ) {
+            if ( ! initializing && typeof this.init === FUNCTION ) {
                 // Call the "real" constructor and apply the arguments
-                this.init.apply( this, (typeof args === "object" && args.callee) ? args : arguments );
+                this.init.apply( this, (typeof args === OBJECT && args.callee) ? args : arguments );
             }
         } else {
             // Instantiate the class and pass the aruments
@@ -77,30 +71,29 @@ Base = $.extend( makeClass(), {
     extend: function( setStatic, prop ) {
 
         // Create a new class
-        var Class = $.Class.makeClass(), n, populator;
+        var Class = makeClass(), name, populator;
 
-        if ( typeof setStatic !== "boolean" ) {
-            prop = typeof setStatic === "object" && setStatic !== null ? setStatic : {};
-            setStatic = typeof prop.prototype === "object";
-        } else {
-            prop = typeof prop === "object" && prop !== null ? prop : {};
+        if ( typeof setStatic !== BOOLEAN ) {
+            prop = setStatic;
         }
+        
+        prop = typeof prop === OBJECT && prop !== null ? prop : {};
 
         // Add functions
-        for ( n in this ) {
-            if( this.hasOwnProperty(n) ) {
-                Class[ n ] = this[ n ];
+        for ( name in this ) {
+            if( this.hasOwnProperty(name) ) {
+                Class[name] = this[name];
             }
         }
 
-        if ( setStatic === true ) {
+        if ( setStatic === true || typeof prop.prototype === OBJECT ) {
             populator = $.Class.initPopulator(this);
-            for ( n in prop ) {
-                if( prop.hasOwnProperty(n) && n !== "prototype" ) {
-                    Class[n] = $.Class.rewrite(n, prop, this, populator);
+            for ( name in prop ) {
+                if( prop.hasOwnProperty(name) && name !== "prototype" ) {
+                    Class[name] = $.Class.rewrite(name, prop, this, populator);
                 }
             }
-            prop = prop.prototype || {};
+            prop = prop.prototype;
         }
 
         // Enforce the constructor to be what we expect
@@ -131,19 +124,14 @@ $.Class = function( setStatic, prop ) {
 
 $.extend($.Class, {
     
-    fnSearch: (function(){
-        var fn = function(){var h = xyz;};
-        return (/xyz/).test( fn ) ? /\b_parent\b/ : /.*/;
-    }()),
-    
-    enable_log: true,
+    fnSearch: fnSearch,
     
     // Error messages
     errors: {
-        logic_parent_call: "Logic error, unable to call the parent function since it isn't defined"
+        logic_parent_call: "Logic error, unable to call the parent function since it isn't defined.."
     },
     
-    log_prefix: "jQuery.Class :: ",
+    log_prefix: prefix,
     
     /**
      * Internal error function
@@ -151,8 +139,6 @@ $.extend($.Class, {
     error: function(key) {
         $.error($.Class.log_prefix + $.Class.errors[key]);
     },
-    
-    log: log,
 
    /**
     * makeClass - By John Resig (MIT Licensed)
@@ -197,7 +183,7 @@ $.extend($.Class, {
         // Instantiate a base class (but only create the instance,
         // don't run the init constructor)
         prototype = new src(),
-        populator = $.Class.initPopulator(parent, true),
+        populator = $.Class.initPopulator(parent),
         name;
         initializing = false;
 
@@ -224,23 +210,13 @@ $.extend($.Class, {
      * @return <function>
      */
     rewrite: function(name, current, parent, populator) {
-        return ((typeof current[name] === "function" && 
+        return ((typeof current[name] === FUNCTION && 
             // Check if we're overwriting an existing function using a parent method
-            (typeof parent[name] === "function" || ! (name in parent)) &&
+            (typeof parent[name] === FUNCTION || ! (name in parent)) &&
             // Don't rewrite classes, and only rewrite functions that are calling a parent function
-            ! $.Class.is(current[name]) && $.Class.fnSearch.test(current[name])) ? 
+            ! $.Class.is(current[name]) && fnSearch.test(current[name])) ? 
             // Rewrite the function and make it possible to call the parent function
             $.Class.rewriteMainParent(current[name], parent[name], populator) : current[name]);
-    },
-    
-    /**
-     * @param <function> fn
-     * @return <function>
-     */
-    rewriteParent: function(fn){
-        return function(){
-            return fn.apply(this._self, arguments);
-        };
     },
     
     /**
@@ -250,10 +226,18 @@ $.extend($.Class, {
      * @return <function>
      */
     rewriteMainParent: function(fn, _parentFn, populator){
+        var parent_functions = populator(), name;
+        
         _parentFn = _parentFn || function() {
             $.Class.error("logic_parent_call");
         };
-        $.extend(_parentFn, populator());
+        
+        for ( name in parent_functions) {
+            if ( parent_functions.hasOwnProperty(name) ) {
+                _parentFn[name] = parent_functions[name];
+            }
+        }
+        
         return function() {
             var set_parent = ("_parent" in this), tmp = this._parent, ret;
 
@@ -267,10 +251,13 @@ $.extend($.Class, {
             // The method only need to be bound temporarily, so we
             // remove it when we're done executing
             ret = fn.apply( this, arguments );
+            
             if ( set_parent ) {
                 this._parent = tmp;
             } else {
-                delete this._parent;
+                try {
+                    delete this._parent;
+                } catch(e) {}
             }
 
             return ret;
@@ -292,16 +279,19 @@ $.extend($.Class, {
      * @param <boolean> [inProto]
      * @return <function>
      */
-    initPopulator: function(parent, inProto) {
-        var cache = null, key;
+    initPopulator: function(parent) {
+        var cache, key;
         return function(){
-            // Only build the cache once
-            if ( cache === null ) {
+            // Only build this once
+            if ( cache == null ) {
                 cache = {};
                 for ( key in parent ) {
-                    if ( parent.hasOwnProperty(key) && typeof parent[key] === "function" && 
-                            (inProto || typeof Base[key]) !== "function" ) {
-                        cache[key] = $.Class.rewriteParent(parent[key]);
+                    if ( parent.hasOwnProperty(key) && typeof parent[key] === FUNCTION ) {
+                        cache[key] = (function(fn) {
+                            return function(){
+                                return fn.apply(this._self, arguments);
+                            };
+                        }(parent[key]));
                     }
                 }
             }
