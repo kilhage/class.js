@@ -10,7 +10,7 @@
  * Integrated with jQuery and added
  * functionality by Emil Kilhage
  *--------------------------------------------*
- * Last Update: 2011-01-31 00:44:34
+ * Last Update: 2011-02-25 16:11:23
  *--------------------------------------------*/
 (function( $ ) {
 
@@ -117,6 +117,26 @@ Base = $.extend( makeClass(), {
     }
 
 });
+
+Base.prototype = {
+
+    /**
+     * A default function on all classes that are created.
+     *
+     * Makes in possible to extend already initalized
+     * objects in an easy way
+     */
+    extend: function(prop) {
+        var self = this, populator = $.Class.initPopulator(self);
+        for ( var name in prop ) {
+            if( prop.hasOwnProperty(name) ) {
+                self[name] = $.Class.rewrite( name, prop, self, populator );
+            }
+        }
+        return self;
+    }
+
+};
 
 /**
  * Simple JavaScript Inheritance
