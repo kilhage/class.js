@@ -10,7 +10,7 @@
  * Integrated with jQuery and added
  * functionality by Emil Kilhage
  *--------------------------------------------*
- * Last Update: 2011-02-25 16:11:23
+ * Last Update: 2011-02-25 21:44:23
  *--------------------------------------------*/
 (function( $ ) {
 
@@ -41,11 +41,11 @@ BOOLEAN = "boolean",
  * It also moves the constructor to a function
  * on the prototype called "init"
  *
- * @return <function Class>
+ * @return <function Awesome>
  */
 makeClass = function(){
-    function Class( args ) {
-        if ( this instanceof Class ) {
+    function Awesome( args ) {
+        if ( this instanceof Awesome ) {
             // If not executing the "extend" function and an init method exist
             if ( ! initializing && typeof this.init === FUNCTION ) {
                 // Call the "real" constructor and apply the arguments
@@ -53,13 +53,13 @@ makeClass = function(){
             }
         } else {
             // Instantiate the class and pass the aruments
-            return new Class( arguments );
+            return new Awesome( arguments );
         }
     }
 
-    Class[ID] = unique;
+    Awesome[ID] = unique;
 
-    return Class;
+    return Awesome;
 },
 
 /**
@@ -125,15 +125,17 @@ Base.prototype = {
      *
      * Makes in possible to extend already initalized
      * objects in an easy way
+     * 
+     * @param <object> prop
+     * @return self
      */
     extend: function(prop) {
-        var self = this, populator = $.Class.initPopulator(self);
         for ( var name in prop ) {
             if( prop.hasOwnProperty(name) ) {
-                self[name] = $.Class.rewrite( name, prop, self, populator );
+                this[name] = $.Class.rewrite( name, prop, this );
             }
         }
-        return self;
+        return this;
     }
 
 };
@@ -237,14 +239,14 @@ $.extend($.Class, {
             // Don't rewrite classes, and only rewrite functions that are calling a parent function
             ! $.Class.is(current[name]) && fnSearch.test(current[name])) ? 
             // Rewrite the function and make it possible to call the parent function
-            (function(fn, parent, populator) {
+            (function(parent_method, parent, populator) {
                 parent = parent || function() {
                     $.Class.error("logic_parent_call");
                 };
                 
-                var populate = parentFnSearch.test(fn);
+                var populate = typeof populator === FUNCTION && parentFnSearch.test(parent_method);
                 function get() {
-                    if ( populate ) {
+                    if ( populate === true ) {
                         populate = false;
                         // Get the parent functions from the populator callback
                         var parent_functions = populator(), name;
@@ -264,13 +266,14 @@ $.extend($.Class, {
                     // Add a new ._parent() method that is the same method
                     // but on the parent-class
                     this._parent = get();
+                    
                     // Save a reference to the class instance on the parent
                     // function so the other parent functions can be called
                     this._parent.__self__ = this;
 
                     // The method only need to be bound temporarily, so we
                     // remove it when we're done executing
-                    ret = fn.apply( this, arguments );
+                    ret = parent_method.apply( this, arguments );
 
                     if ( set_parent ) {
                         this._parent = tmp;

@@ -1,14 +1,12 @@
 
 log = function(m) {
     if ( typeof window.console === "object" && typeof console.log === "function" ) {
-        var type = typeof m;
-        if ( type === "string" || type === "number") {
-            m = $.Class.log_prefix + m;
-        }
-        console.log(m);
+        console.log($.Class.log_prefix, m);
     }
     return m;
 };
+
+module("Usage");
 
 test("Basic", function(){
     
@@ -23,9 +21,22 @@ test("Basic", function(){
         
     }),
     
+    Cl2 = $.Class({}),
+    
+    Cl3 = Cl.extend({}),
+    
     c = new Cl(val),
 
     b = Cl(val);
+    
+    ok(b instanceof Cl);
+    ok(c instanceof Cl);
+    
+    ok(!(b instanceof Cl2));
+    ok(!(c instanceof Cl2));
+    
+    ok(!(b instanceof Cl3));
+    ok(!(c instanceof Cl3));
     
     try {
         check = c.name === b.name;
@@ -133,6 +144,103 @@ test("Inheritance", function(){
     
     equals(c.fn(), "not the first, but added - not the first, but fn");
     
+    var t = 100, y = false, b = t;
+    try {
+        Cls = {};
+        Cls[t] = $.Class({
+            n: 100,
+
+            fn:function(){
+                return this.n;
+            },
+
+            fn2:function(){
+                return this.n;
+            },
+            
+            prototype: {
+                init: function(){
+                    this.n = 100;
+                },
+
+                fn:function(){
+                    return this.n;
+                },
+
+                fn2:function(){
+                    return this.n;
+                }
+            }
+        });
+
+        while( t-- ) {
+            Cls[t] = (function(t){
+                return Cls[t+1].extend({
+
+                    fn:function(){
+                        return this._parent()+t;
+                    },
+
+                    fn2:function(){
+                        return this._parent.fn2()+t;
+                    },
+            
+                    prototype: {
+                        init: !!(t % 2) ? 
+                            function(){this._parent()} : 
+                            function(){this._parent.init()},
+
+                        fn:function(){
+                            return this._parent()+t;
+                        },
+
+                        fn2:function(){
+                            return this._parent.fn2()+t;
+                        }
+                    }
+                });
+            }(t));
+            b += t;
+        }
+        
+        c = new Cls[t+1]();
+        y = c.fn() == b && c.fn2() == b && Cls[t+1].fn() == b && Cls[t+1].fn2() == b;
+    } catch(e) {
+        log(e);
+        y = false;
+    }
+    
+    ok(y, "Build really long inheritance chains");
+    
+    Cl = $.Class({
+        subClass: $.Class({
+            fn: function(){
+                return true;
+            }
+        }),
+        test: function(){
+            var c = new this.subClass();
+            return c.fn();
+        }
+    });
+    
+    Cl2 = Cl.extend({
+        subClass: $.Class({
+            fn: function(){
+                return false;
+            }
+        }),
+        test2: function(){
+            var c = new this._parent.subClass();
+            return c.fn();
+        }
+    });
+    
+    c = new Cl2();
+    
+    equal(c.test(), false);
+    equal(c.test2(), true);
+    
 });
 
 test("Static", function(){
@@ -235,6 +343,86 @@ test("Static", function(){
     
 });
 
+test("Instance", function(){
+    
+    var Cl = $.Class({
+        
+        init: function() {
+            this.i = 0;
+        },
+        
+        count: function() {
+            return this.i;
+        }
+        
+    });
+    
+    var instance = new Cl();
+    
+    ok(instance instanceof Cl);
+    ok(Cl.prototype.isPrototypeOf(instance));
+    
+    instance.extend({
+        
+        count: function() {
+            var i = this._parent();
+            
+            i++;
+            
+            return i;
+            
+        },
+        
+        get: function() {
+            return this.count()
+        }
+        
+    });
+    
+    equals(instance.count(), 1, "Make a simple instance extention");
+    
+    equals(instance.get(), 1);
+    
+    ok(instance instanceof Cl);
+    ok(Cl.prototype.isPrototypeOf(instance));
+    
+    instance.extend({
+        
+        count: function() {
+            var i = this._parent();
+            
+            i++
+            
+            return i;
+            
+        },
+        
+        get: function() {
+            return this.count()
+        }
+        
+    });
+    
+    equals(instance.count(), 2, "Extend the same instance again");
+    
+    equals(instance.get(), 2);
+    
+    ok(instance instanceof Cl);
+    ok(Cl.prototype.isPrototypeOf(instance));
+    
+    instance = new Cl();
+    
+    equals(instance.count(), 0, "Make sure that only the instance are modified");
+    
+    equals($.type(instance.get), "undefined");
+    
+    ok(instance instanceof Cl);
+    ok(Cl.prototype.isPrototypeOf(instance));
+
+});
+
+module("Internal");
+
 test("Errors", function(){
     var check = function(name, fn, message){
         var check = false;
@@ -265,9 +453,15 @@ test("Errors", function(){
         
     }, "The plugin should not allow functions called '__self__'");
     
+    check("self_in_prop", function(){
+        
+        $.Class(true, {__self__: function(){}});
+        
+    }, "The plugin should not allow static functions called '__self__'");
+    
 });
 
-test("Internal test", function(){
+test("Stuff", function(){
    
    var Cl = $.Class({
        
@@ -300,7 +494,7 @@ test("Internal test", function(){
   
    ok( ! $.Class.fnSearch.test(Cl2.prototype.fn), "Can the plugin identify if a function don't calls a parent function");
     
-    Cl = $.Class({
+   Cl = $.Class({
         
         init: function() {
             
@@ -376,7 +570,9 @@ test("Evil", function(){
    
 });
 
-test("Bugs", function() {
+module("Bugs");
+
+test("Make sure that RegExp's are properly handled", function() {
    
    var Cl = $.Class({
        
@@ -386,6 +582,6 @@ test("Bugs", function() {
    
    var Cl2 = Cl.extend({});
    
-   ok($.type(Cl2.prototype.preg) === "regexp", "Are the $.Class.rewrite function only rewriting functions?")
+   ok($.type(Cl2.prototype.preg) === "regexp", "Are the $.Class.rewrite function only rewriting functions?");
    
 });

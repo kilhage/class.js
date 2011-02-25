@@ -4,7 +4,7 @@
 Info
 ----------------------------
 * MIT Licensed
-* Last Updated: 2011-01-31 00:44:34
+* Last Updated: 2011-02-25 21:44:23
 
 
 Usage:
@@ -34,10 +34,12 @@ var YourClass = $.Class({
 
 * Instaciate the class
 <pre>
-var object = YourClass( "YES" );
 
-// You can also use the new keyword like this if you feel for it, but it isn't needed..
-var object = new YourClass( "YES" ); 
+var object = new YourClass( "YES" );
+
+// The new keyword isn't needed, but recomended since its 
+// faster and makes your code more readlable..
+var object = YourClass( "YES" );
 
 object.getMessage(); // --> "YES"
 
@@ -47,7 +49,8 @@ object.doShit(); // --> call a method
 
 </pre>
 
-* To extend a class, note that this only works on classes that not have been instaciated:
+* To extend a class that not have been initalized, all instances do 
+* this class will get these properties in the future
 <pre>
 var ExtendedClass = YourClass.extend({
 
@@ -83,4 +86,38 @@ ExtendedClass.addMethods({
 });
 </pre>
 
-* In the file example.html, test/test.js and test/performance.js you can find some more examples ...
+* Extend an instance of a class
+<pre>
+
+var Class = $.Class({
+
+    get: function(){
+        return "Oh";
+    }
+
+});
+
+var instance = new Class();
+
+instance.get() === "Oh";
+
+instance.extend({
+
+    get: function(){
+        var ret = this._parent();
+
+        return ret + "My";
+    }
+
+});
+
+instance.get() === "OhMy";
+
+var org_instance = new Class();
+
+org_instance.get() === "Oh";
+
+</pre>
+
+* In the file example.html, test/test.js and test/speed.js 
+* you can find some more examples how you can create classes in different ways with this plugin ...
