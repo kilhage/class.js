@@ -3,10 +3,10 @@
   <head>
     <title></title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <link rel="stylesheet" type="text/css" href="https://github.com/kilhage/jquery-benchmark/raw/master/jquery-benchmark-suit.css" />
-    <script src="http://code.jquery.com/jquery.js"></script>
-    <script src="https://github.com/kilhage/jquery-benchmark/raw/master/jquery-benchmark.js"></script>
-    <script src="https://github.com/kilhage/jquery-benchmark/raw/master/jquery-benchmark-suit.js"></script>
+    <link rel="stylesheet" type="text/css" href="bench/jquery-benchmark-suit.css" />
+    <script src="jquery.js"></script>
+    <script src="bench/jquery-benchmark.js"></script>
+    <script src="bench/jquery-benchmark-suit.js"></script>
     <script src="../jquery.class<?php echo isset($_GET["a"]) ? $_GET["a"] : "" ?>.js"></script>
     <script>
 

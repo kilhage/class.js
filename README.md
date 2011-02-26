@@ -4,7 +4,7 @@
 Info
 ----------------------------
 * MIT Licensed
-* Last Updated: 2011-02-25 21:44:23
+* Last Updated: 2011-02-26 02:02:56
 
 
 Usage:
@@ -49,7 +49,7 @@ object.doShit(); // --> call a method
 
 </pre>
 
-* To extend a class that not have been initalized, all instances do 
+* To extend a class that not have been initalized, all new instances of 
 * this class will get these properties in the future
 <pre>
 var ExtendedClass = YourClass.extend({
@@ -79,6 +79,10 @@ ExtendedClass.addMethods({
 
     doSomethingMore: function() {
         // code ...
+    },
+
+    doShit: function() {
+        this._parent(); // call the doShit method that this method overwrites
     }
 
     // and so on ...

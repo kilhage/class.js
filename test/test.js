@@ -118,10 +118,6 @@ test("Inheritance", function(){
         
         fn: function(){
             return this._parent()+", but added";
-        },
-        
-        fn2: function(m){
-            return this._parent.fn()+m;
         }
         
     });
@@ -129,20 +125,6 @@ test("Inheritance", function(){
     c = new Cl2();
     
     equals(c.fn(), "not the first, but added");
-    
-    equals(c.fn2(", but fn2"), "not the first, but fn2");
-    
-    Cl2.addMethods({
-        
-        fn: function(){
-            return this._parent.fn()+" - "+this._parent.fn2(", but fn");
-        }
-        
-    });
-    
-    c = new Cl2();
-    
-    equals(c.fn(), "not the first, but added - not the first, but fn");
     
     var t = 100, y = false, b = t;
     try {
@@ -583,5 +565,70 @@ test("Make sure that RegExp's are properly handled", function() {
    var Cl2 = Cl.extend({});
    
    ok($.type(Cl2.prototype.preg) === "regexp", "Are the $.Class.rewrite function only rewriting functions?");
+    
+   Cl = $.Class({
+        
+        init: /fwscds/
+        
+    });
+    
+    var valid = true;
+    
+    try {
+        var instance = new Cl();
+    } catch(e) {
+        valid = false;
+        log(e);
+        
+    }
+    
+    ok(valid, "Could we have an reqexp called 'init' ?");
    
+});
+
+test("addMethods", function(){
+    
+    var Cl = $.Class({
+        
+        get: function(){
+            return "hi there";
+        }
+        
+    });
+    
+    var instance = new Cl();
+    
+    Cl.addMethods({
+        
+        get: function(){
+            return this._parent();
+        }
+        
+    });
+    
+    ok(instance instanceof Cl, "make sure that the instance still is the instance of it's origin");
+    ok(Cl.prototype.isPrototypeOf(instance));
+    
+    instance = new Cl();
+
+});
+
+test("Mad", function(){
+    
+    var Cl = $.Class({
+        
+        init: function(){}
+        
+    });
+    
+    var valid = true;
+    
+    try {
+        var instance = new Cl(null); // Crazy i've missed this
+    } catch(e) {
+        valid = false;
+    }
+    
+    ok(valid);
+    
 });
