@@ -9,7 +9,7 @@
  *--------------------------------------------*
  * Added functionality by Emil Kilhage
  *--------------------------------------------*
- * Last Update: 2011-02-26 02:02:56
+ * Last Update: 2011-02-27 18:54:08
  *--------------------------------------------*/
 (function(window) {
 
@@ -66,43 +66,57 @@ makeClass = function(){
 Base = makeClass();
 
 /**
- * Makes it possible to extend objects
+ * Makes it possible to create classes that extends
+ * antoher class prototype
  */
 Base.extend = function( setStatic, prop ) {
 
     // Create a new class
-    var Awesome = makeClass(), name;
+    var Awesome = makeClass(), name, src = this, prototype, parent = src.prototype || {};
 
     if ( typeof setStatic !== "boolean" ) {
         prop = setStatic;
     }
 
     prop = typeof prop === "object" && prop !== null ? prop : {};
+    
+    prototype = prop.prototype;
 
     // Move all static properties
-    for ( name in this ) {
-        if( this.hasOwnProperty(name) ) {
-            Awesome[name] = this[name];
+    for ( name in src ) {
+        if( src.hasOwnProperty(name) ) {
+            Awesome[name] = src[name];
         }
     }
 
-    if ( setStatic === true || typeof prop.prototype === "object" ) {
+    if ( setStatic === true || typeof prototype === "object" && prototype != null ) {
         Class.validate(prop);
-        add(prop, this, Awesome, Class.initPopulator(this));
-        prop = prop.prototype;
+        add(prop, src, Awesome, Class.initPopulator(src));
+        prop = prototype;
     }
 
     // Enforce the constructor to be what we expect
     Awesome.constructor = Awesome;
 
-    // Populate our constructed prototype object
-    Class.addMethods( this, prop, Awesome );
+    // Instantiate a base class (but only create the instance,
+    // don't run the init constructor)
+    initializing = true;
+    prototype = new src();
+    initializing = false;
 
+    prop = prop || {};
+    Class.validate(prop);
+
+    // Copy the properties over onto the new proto
+    add(prop, parent, prototype, Class.initPopulator(parent));
+
+    Awesome.prototype = prototype;
+    
     return Awesome;
 };
 
 /**
- * Adds methods to a Class prototype
+ * Adds methods to a Class proto
  */
 Base.addMethods = function( prop ) {
     return add(prop, this.prototype);
@@ -119,7 +133,7 @@ Base.prototype = {
      * @param <object> prop
      * @return self
      */
-    extend: function(prop) {
+    addMethods: function( prop ) {
         return add(prop, this);
     }
 
@@ -129,7 +143,7 @@ Base.prototype = {
  * Simple JavaScript Inheritance
  * By John Resig http://ejohn.org/
  * MIT Licensed.
- * @param <object> prop: The prototype that you want the object to have
+ * @param <object> prop: The proto that you want the object to have
  * @return <function> Created class
  */
 var Class = function( setStatic, prop ) {
@@ -160,39 +174,6 @@ Class.errors = {
 Class.makeClass = makeClass;
 
 /**
- * Adds methods to a class prototype
- *
- * @param <function> src: The Class that the methods should be added to
- * @param <object> prop: New methods
- * @param <function> [classToModify]: The Class that should be modified
- *
- * @return {class} Modified class
- */
-Class.addMethods = function( src, prop, classToModify ) {
-    // If "classToModify" isn't set, modify "src" insead
-    classToModify = classToModify || src;
-
-    initializing = true;
-
-    var parent = src.prototype || {},
-        // Instantiate a base class (but only create the instance,
-        // don't run the init constructor)
-        prototype = new src();
-    
-    initializing = false;
-
-    prop = prop || {};
-    Class.validate(prop);
-
-    // Copy the properties over onto the new prototype
-    add(prop, parent, prototype, Class.initPopulator(parent));
-
-    classToModify.prototype = prototype;
-
-    return classToModify;
-};
-
-/**
  * Rewrites a property
  * 
  * @param <string> name
@@ -208,12 +189,12 @@ Class.rewrite = function(name, current, parent, populator) {
         // Don't rewrite classes, and only rewrite functions that are calling a parent function
         ! Class.is(current[name]) && fnSearch.test(current[name])) ? 
         // Rewrite the function and make it possible to call the parent function
-        (function(parent_method, parent, populator) {
+        (function(current, parent, populator) {
             parent = parent || function() {
                 error("logic_parent_call");
             };
 
-            var populate = isFunction(populator) && parentFnSearch.test(parent_method);
+            var populate = isFunction(populator) && parentFnSearch.test(current);
             function get() {
                 if ( populate === true ) {
                     populate = false;
@@ -230,19 +211,21 @@ Class.rewrite = function(name, current, parent, populator) {
             }
 
             return function() {
-                var set_parent = "_parent" in this, tmp = this._parent, ret;
+                var set_parent = this.hasOwnProperty("_parent"), 
+                    // store the content in the '_parent' property 
+                    // so we can revert the object after we're done
+                    tmp = this._parent, ret;
 
-                // Add a new ._parent() method that is the same method
-                // but on the parent-class
+                // Add a new ._parent() method that points to the parent class
                 this._parent = get();
 
                 // Save a reference to the class instance on the parent
-                // function so the other parent functions can be called
+                // function so the other methods from the instance parent class can be called
                 this._parent.__self__ = this;
 
                 // The method only need to be bound temporarily, so we
                 // remove it when we're done executing
-                ret = parent_method.apply( this, arguments );
+                ret = current.apply( this, arguments );
 
                 if ( set_parent ) {
                     this._parent = tmp;
@@ -269,7 +252,6 @@ Class.is = function(fn) {
 /**
  * 
  * @param <object> parent
- * @param <boolean> [inProto]
  * @return <function>
  */
 Class.initPopulator = function(parent) {

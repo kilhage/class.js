@@ -104,7 +104,7 @@ test("Extending an instance", 10000, function(t){
     }));
     
     while(t--) {
-        instance.extend({
+        instance.addMethods({
             
             init: function(){
                 this._parent();

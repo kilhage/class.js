@@ -344,7 +344,7 @@ test("Instance", function(){
     ok(instance instanceof Cl);
     ok(Cl.prototype.isPrototypeOf(instance));
     
-    instance.extend({
+    instance.addMethods({
         
         count: function() {
             var i = this._parent();
@@ -368,7 +368,7 @@ test("Instance", function(){
     ok(instance instanceof Cl);
     ok(Cl.prototype.isPrototypeOf(instance));
     
-    instance.extend({
+    instance.addMethods({
         
         count: function() {
             var i = this._parent();
@@ -443,7 +443,7 @@ test("Errors", function(){
     
 });
 
-test("Stuff", function(){
+test("Helpers", function(){
    
    var Cl = $.Class({
        
@@ -549,12 +549,28 @@ test("Evil", function(){
            ok(check, m);
        }
    });
+    
+    Cl = $.Class({
+        
+        init: function(){}
+        
+    });
+    
+    var valid = true;
+    
+    try {
+        var instance = new Cl(null);
+    } catch(e) {
+        valid = false;
+    }
+    
+    ok(valid);
    
 });
 
 module("Bugs");
 
-test("Make sure that RegExp's are properly handled", function() {
+test("RegExp's of pure evil", function() {
    
    var Cl = $.Class({
        
@@ -611,24 +627,4 @@ test("addMethods", function(){
     
     instance = new Cl();
 
-});
-
-test("Mad", function(){
-    
-    var Cl = $.Class({
-        
-        init: function(){}
-        
-    });
-    
-    var valid = true;
-    
-    try {
-        var instance = new Cl(null); // Crazy i've missed this
-    } catch(e) {
-        valid = false;
-    }
-    
-    ok(valid);
-    
 });

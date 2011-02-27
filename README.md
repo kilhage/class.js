@@ -4,13 +4,13 @@
 Info
 ----------------------------
 * MIT Licensed
-* Last Updated: 2011-02-26 02:02:56
+* Last Updated: 2011-02-27 18:54:08
 
 
 Usage:
 ----------------------------
 
-* Create a class:
+* Create a class.
 <pre>
 var YourClass = $.Class({
     
@@ -33,6 +33,7 @@ var YourClass = $.Class({
 </pre>
 
 * Instaciate the class
+* When this is done, the init method will be executed, if it exist.
 <pre>
 
 var object = new YourClass( "YES" );
@@ -49,8 +50,7 @@ object.doShit(); // --> call a method
 
 </pre>
 
-* To extend a class that not have been initalized, all new instances of 
-* this class will get these properties in the future
+* Create a new class that extends form an existing class.
 <pre>
 var ExtendedClass = YourClass.extend({
 
@@ -69,8 +69,10 @@ var ExtendedClass = YourClass.extend({
 });
 </pre>
 
-* Add methods to a existing class:
+* Add properties to a existing class prototype on the fly.
+* Only adds the properties to new instance'ses on the class
 <pre>
+
 ExtendedClass.addMethods({
 
     doSomething: function() {
@@ -90,7 +92,7 @@ ExtendedClass.addMethods({
 });
 </pre>
 
-* Extend an instance of a class
+* Add properties to an class instance on the fly
 <pre>
 
 var Class = $.Class({
@@ -105,7 +107,7 @@ var instance = new Class();
 
 instance.get() === "Oh";
 
-instance.extend({
+instance.addMethods({
 
     get: function(){
         var ret = this._parent();
@@ -123,5 +125,6 @@ org_instance.get() === "Oh";
 
 </pre>
 
-* In the file example.html, test/test.js and test/speed.js 
-* you can find some more examples how you can create classes in different ways with this plugin ...
+* You can find some more examples how you can create 
+* classes in different ways with this plugin 
+* in test/test.js and test/speed.js 
