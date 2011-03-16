@@ -1,17 +1,15 @@
 /*--------------------------------------------*
- * Useful extensions when
- * you are creating your own
- * javascript objects/classes
+ * Low-level plugin that helps 
+ * you to create classes/objects
+ * https://github.com/kilhage/jquery-class
  *--------------------------------------------*
- * Orgins from:
- * Simple JavaScript Inheritance and makeClass
- * by John Resig http://ejohn.org/
+ * Author Emil Kilhage
+ * MIT Licensed
  *--------------------------------------------*
- * Added functionality by Emil Kilhage
- *--------------------------------------------*
- * Last Update: 2011-02-27 18:54:08
+ * Last Update: 2011-03-16 21:04:27
+ * Version 1.0.0
  *--------------------------------------------*/
-(function(window) {
+(function(root) {
 
 var initializing = false,
 
@@ -157,7 +155,8 @@ Class.log_prefix = prefix;
 // Error messages
 Class.errors = {
     logic_parent_call: "Logic error, unable to call the parent function since it isn't defined..",
-    self_in_prop: "'__self__' is a preserved word used in the jQuery.Class plugin, please rename the function"
+    self_in_prop: "'__self__' is a preserved word used in the jQuery.Class plugin, please rename the function",
+    invalid_$: "Invalid data-type of the global '$' property"
 };
 
 /**
@@ -302,14 +301,14 @@ function error(key) {
 
 /* ================= Expose globally ================ */
 
-if ( ! window.$ ) {
-    window.$ = {};
+if ( ! root.$ ) {
+    // Make sure that $ isn't overwritten..
+    if ( "$" in root ) {
+        error("invalid_$");
+    }
+    root.$ = {};
 }
 
-window.$.Class = Class;
+root.$.Class = Class;
 
-if ( "jQuery" in window ) {
-    window.jQuery.Class = Class;
-}
-
-}(window));
+}(this));
