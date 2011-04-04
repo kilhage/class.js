@@ -624,7 +624,5 @@ test("addMethods", function(){
     
     ok(instance instanceof Cl, "make sure that the instance still is the instance of it's origin");
     ok(Cl.prototype.isPrototypeOf(instance));
-    
-    instance = new Cl();
 
 });

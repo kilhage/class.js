@@ -6,14 +6,14 @@
  * Author Emil Kilhage
  * MIT Licensed
  *--------------------------------------------*
- * Last Update: 2011-03-16 21:04:27
+ * Last Update: 2011-04-04 22:38:44
  * Version 1.0.0
  *--------------------------------------------*/
 (function(root) {
 
 var initializing = false,
 
-prefix = "$.Class :: ",
+prefix = "Class",
 
 // This 'ID' key will be set to 'unique' on all classes
 // created by this plugin so the plugin can 
@@ -109,6 +109,10 @@ Base.extend = function( setStatic, prop ) {
     add(prop, parent, prototype, Class.initPopulator(parent));
 
     Awesome.prototype = prototype;
+    
+    // Store a reference to the constructor at the prototype
+    // Makes it possible to access the constructor dynamically inside an instance.
+    Awesome.prototype.constructor = Awesome;
     
     return Awesome;
 };
@@ -245,7 +249,7 @@ Class.rewrite = function(name, current, parent, populator) {
  * @return <boolean>
  */
 Class.is = function(fn) {
-    return fn[ID] === unique;
+    return !!(fn && fn[ID] === unique);
 };
 
 /**

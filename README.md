@@ -4,7 +4,7 @@
 About
 ----------------------------
 * MIT Licensed
-* Last Updated: 2011-03-16 21:04:27
+* Last Updated: 2011-04-04 22:38:44
 * Version 1.0.0
 * Author Emil Kilhage
 
@@ -175,11 +175,66 @@ org_instance.get() === "Oh";
 
 </pre>
 
+* You also have the possibility to add static properties in an easy way
+
+* All instances will have an property called "constructor" that always will be a reference to the class-constructor.
+
+<pre>
+
+var Base = $.Class({
+
+    staticMethod: function() {
+        return "Hi";
+    },
+    
+    // These properties will be the instance-properties
+    prototype: {
+
+        init: function() {
+            this.message = "Hello";
+        },
+
+        getMessage: function() {
+            return this.message;
+        }
+
+    }
+
+});
+
+var ExtendedClass = Base.extend({
+
+    there: " there!",
+
+    staticMethod: function(){
+        return this._parent() + this.there;
+    },
+
+    prototype: {
+
+        getMessage: function() {
+            return this._parent() + this.constructor.there; 
+            // Would be the same as:
+            // return this._parent() + ExtendedClass.there;
+        }
+    }
+
+});
+
+Base.staticMethod() // -> "Hi"
+
+ExtendedClass.staticMethod() // -> "Hi there!"
+
+var ext = new ExtendedClass();
+
+ext.getMessage() // -> "Hello there!"
+
+</pre> 
 
 Good to know:
 ----------------------------
 
-* You could not have a function called '__self__', this is a prefered word 
+* You could not have a function called '__self__', this is a preserved word 
   and is used when calling a parent method like this: `this._parent.doSomething()`
 
 Bad:
