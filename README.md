@@ -237,7 +237,7 @@ Good to know:
 * You could not have a function called '__self__', this is a preserved word 
   and is used when calling a parent method like this: `this._parent.doSomething()`
 
-Bad:
+Bad(will throw an exception):
 <pre>
 var YourAwesomeClass = $.Class({
 
@@ -248,11 +248,11 @@ var YourAwesomeClass = $.Class({
 });
 </pre>
 
-* Since this library adds the 'Class' property to the '$' variable, this 
+* Since this library adds the 'Class' property to the global '$' variable, this 
   variable must not be of a data-type that don't support for sub-properties.
   If however it don't exist at all, if will be defined..
 
-Bad:
+Bad(will throw an exception):
 <pre>
 $ = null;
 // or
