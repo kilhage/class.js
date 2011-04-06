@@ -6,17 +6,18 @@
  * Author Emil Kilhage
  * MIT Licensed
  *--------------------------------------------*
- * Last Update: 2011-04-06 23:28:57
+ * Last Update: 2011-04-06 23:44:12
  * Version 1.0.0
  *--------------------------------------------*/
 (function(root) {
 
 var initializing = false,
 Class,
-prefix = "__Class",
+prefix = "_Class",
 
-unique = prefix + (new Date()).getTime(),
-ID = unique+"__",
+unique = prefix + (new Date()).getTime() + "_",
+ID = "_"+unique+"_",
+IDF = "_"+ID+"_",
 
 _searchable = (/\b_parent\b/).test(function(){this._parent();}),
 fnSearch = _searchable ? (/\b_parent\b/) : /.*/,
@@ -164,7 +165,7 @@ Base.prototype = {
  * Needed to rewrite the behaviour of this regexp's test method to work properly
  */
 parentFnSearch.test = function(fn) {
-    return test.call(parentFnSearch, fn) || fn[ID] === true;
+    return test.call(parentFnSearch, fn) || fn[IDF] === true;
 };
 
 /**
@@ -264,7 +265,9 @@ Class.rewrite = function(name, current, parent, populator) {
 
                 return ret;
             };
-            fn[ID] = populate;
+            
+            fn[IDF] = populate;
+            
             return fn;
         }(current[name], parent[name], populator)) : current[name]);
 };
