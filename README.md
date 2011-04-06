@@ -177,8 +177,6 @@ org_instance.get() === "Oh";
 
 * You also have the possibility to add static properties in an easy way
 
-* All instances will have an property called "constructor" that always will be a reference to the class-constructor.
-
 <pre>
 
 var Base = $.Class({
@@ -213,9 +211,7 @@ var ExtendedClass = Base.extend({
     prototype: {
 
         getMessage: function() {
-            return this._parent() + this.constructor.there; 
-            // Would be the same as:
-            // return this._parent() + ExtendedClass.there;
+            return this._parent() + ExtendedClass.there;
         }
     }
 
@@ -229,46 +225,51 @@ var ext = new ExtendedClass();
 
 ext.getMessage() // -> "Hello there!"
 
-</pre> 
+</pre>
 
-Good to know:
-----------------------------
+* All instances will have a property called 'constructor' that always will be a
+  reference to the class-constructor, this enables you to access the constructor-properties
+  dynamically without hard-code the constructor name.
 
-* You could not have a function called '__self__', this is a preserved word 
-  and is used when calling a parent method like this: `this._parent.doSomething()`
-
-Bad(will throw an exception):
 <pre>
-var YourAwesomeClass = $.Class({
 
-    __self__: function(){
+var Class = $.Class({
+
+    property: "hi there",
+
+    prototype: {
+        
+        get: function() {
+            return this.constructor.property;
+        }
 
     }
 
 });
+
+var instance = new Class();
+
+instance.get() -> "hi there"
+
 </pre>
 
-* Since this library adds the 'Class' property to the global '$' variable, this 
-  variable must not be of a data-type that don't support for sub-properties.
-  If however it don't exist at all, if will be defined..
+* All classes will have static function called "inherits"
+  that can be used to check if a class inherits from another class
 
-Bad(will throw an exception):
 <pre>
-$ = null;
-// or
-$ = false;
-// or
-$ = true;
-// or
-$ = NaN;
-// or
-$ = undefined;
-// or
-$ = "blah";
-// or
-$ = 0;
-</pre>
 
-* You can find some more examples how you can create 
-  classes in different ways with this library 
-  in test/test.js and test/speed.js 
+var Base = $.Class({});
+var Ext = Base.extend({});
+var Ext2 = Ext.extend({});
+
+Ext.inherits(Base); -> true
+
+Ext.inherits(Ext2); -> false
+
+Ext.inherits(Ext); -> false
+
+Ext2.inherits(Base); -> true
+
+Ext2.inherits(Ext); ->true
+
+</pre>

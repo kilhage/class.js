@@ -6,26 +6,24 @@
  * Author Emil Kilhage
  * MIT Licensed
  *--------------------------------------------*
- * Last Update: 2011-04-04 22:38:44
+ * Last Update: 2011-04-06 23:28:57
  * Version 1.0.0
  *--------------------------------------------*/
 (function(root) {
 
 var initializing = false,
+Class,
+prefix = "__Class",
 
-prefix = "Class",
-
-// This 'ID' key will be set to 'unique' on all classes
-// created by this plugin so the plugin can 
-// identify the classes in an easy way
-ID = "__is_class__",
 unique = prefix + (new Date()).getTime(),
+ID = unique+"__",
 
 _searchable = (/\b_parent\b/).test(function(){this._parent();}),
 fnSearch = _searchable ? (/\b_parent\b/) : /.*/,
 parentFnSearch = _searchable ? (/\b_parent\b\./) : /.*/,
 
-toString = Object.prototype.toString, // Used in the isFunction function in the buttom
+test = RegExp.prototype.test,
+toString = Object.prototype.toString,
 
 /**
  * makeClass - By John Resig (MIT Licensed)
@@ -52,7 +50,7 @@ makeClass = function(){
         }
     }
 
-    Awesome[ID] = unique;
+    Awesome[ID] = true;
 
     return Awesome;
 },
@@ -69,8 +67,12 @@ Base = makeClass();
  */
 Base.extend = function( setStatic, prop ) {
 
-    // Create a new class
-    var Awesome = makeClass(), name, src = this, prototype, parent = src.prototype || {};
+        // Create the new class
+    var Awesome = makeClass(), 
+        name, 
+        src = this, 
+        prototype, 
+        parent = src.prototype;
 
     if ( typeof setStatic !== "boolean" ) {
         prop = setStatic;
@@ -88,31 +90,40 @@ Base.extend = function( setStatic, prop ) {
     }
 
     if ( setStatic === true || typeof prototype === "object" && prototype != null ) {
-        Class.validate(prop);
         add(prop, src, Awesome, Class.initPopulator(src));
         prop = prototype;
     }
 
     // Enforce the constructor to be what we expect
     Awesome.constructor = Awesome;
-
-    // Instantiate a base class (but only create the instance,
-    // don't run the init constructor)
+    
+    // Create a shallow copy of the source prototype
     initializing = true;
     prototype = new src();
     initializing = false;
 
     prop = prop || {};
-    Class.validate(prop);
 
     // Copy the properties over onto the new proto
     add(prop, parent, prototype, Class.initPopulator(parent));
 
     Awesome.prototype = prototype;
     
-    // Store a reference to the constructor at the prototype
-    // Makes it possible to access the constructor dynamically inside an instance.
+    /**
+     * Store a reference to the constructor at the prototype
+     * Makes it possible to access the constructor dynamically inside an instance
+     */
     Awesome.prototype.constructor = Awesome;
+    
+    /**
+     * Checks if a class inherits from another class
+     * 
+     * @param <function> parent
+     * @return boolan
+     */
+    Awesome.inherits = function(parent) {
+        return parent === src || src.inherits(parent);
+    };
     
     return Awesome;
 };
@@ -122,6 +133,14 @@ Base.extend = function( setStatic, prop ) {
  */
 Base.addMethods = function( prop ) {
     return add(prop, this.prototype);
+};
+
+/**
+ * The Base-class doesn't inherit from anything
+ * @return <boolean> false
+ */
+Base.inherits = function() {
+    return false;
 };
 
 Base.prototype = {
@@ -142,13 +161,20 @@ Base.prototype = {
 };
 
 /**
+ * Needed to rewrite the behaviour of this regexp's test method to work properly
+ */
+parentFnSearch.test = function(fn) {
+    return test.call(parentFnSearch, fn) || fn[ID] === true;
+};
+
+/**
  * Simple JavaScript Inheritance
  * By John Resig http://ejohn.org/
  * MIT Licensed.
  * @param <object> prop: The proto that you want the object to have
  * @return <function> Created class
  */
-var Class = function( setStatic, prop ) {
+Class = function( setStatic, prop ) {
     return Base.extend( setStatic, prop );
 };
 
@@ -159,7 +185,6 @@ Class.log_prefix = prefix;
 // Error messages
 Class.errors = {
     logic_parent_call: "Logic error, unable to call the parent function since it isn't defined..",
-    self_in_prop: "'__self__' is a preserved word used in the jQuery.Class plugin, please rename the function",
     invalid_$: "Invalid data-type of the global '$' property"
 };
 
@@ -193,11 +218,10 @@ Class.rewrite = function(name, current, parent, populator) {
         ! Class.is(current[name]) && fnSearch.test(current[name])) ? 
         // Rewrite the function and make it possible to call the parent function
         (function(current, parent, populator) {
-            parent = parent || function() {
+            parent || (parent = function() {
                 error("logic_parent_call");
-            };
-
-            var populate = isFunction(populator) && parentFnSearch.test(current);
+            });
+            
             function get() {
                 if ( populate === true ) {
                     populate = false;
@@ -213,8 +237,9 @@ Class.rewrite = function(name, current, parent, populator) {
                 return parent;
             }
 
-            return function() {
-                var set_parent = this.hasOwnProperty("_parent"), 
+            var populate = !!(isFunction(populator) && parentFnSearch.test(current)),
+                fn = function() {
+                var set_parent = "_parent" in this, 
                     // store the content in the '_parent' property 
                     // so we can revert the object after we're done
                     tmp = this._parent, ret;
@@ -224,10 +249,9 @@ Class.rewrite = function(name, current, parent, populator) {
 
                 // Save a reference to the class instance on the parent
                 // function so the other methods from the instance parent class can be called
-                this._parent.__self__ = this;
-
-                // The method only need to be bound temporarily, so we
-                // remove it when we're done executing
+                this._parent[unique] = this;
+                
+                // execute the original function
                 ret = current.apply( this, arguments );
 
                 if ( set_parent ) {
@@ -240,6 +264,8 @@ Class.rewrite = function(name, current, parent, populator) {
 
                 return ret;
             };
+            fn[ID] = populate;
+            return fn;
         }(current[name], parent[name], populator)) : current[name]);
 };
 
@@ -249,7 +275,7 @@ Class.rewrite = function(name, current, parent, populator) {
  * @return <boolean>
  */
 Class.is = function(fn) {
-    return !!(fn && fn[ID] === unique);
+    return !!(fn && fn[ID] === true);
 };
 
 /**
@@ -264,10 +290,10 @@ Class.initPopulator = function(parent) {
         if ( cache == null ) {
             cache = {};
             for ( var key in parent ) {
-                if ( parent.hasOwnProperty(key) && isFunction(parent[key]) ) {
+                if ( isFunction(parent[key]) ) {
                     cache[key] = (function(fn) {
                         return function(){
-                            return fn.apply(this.__self__, arguments);
+                            return fn.apply(this[unique], arguments);
                         };
                     }(parent[key]));
                 }
@@ -275,12 +301,6 @@ Class.initPopulator = function(parent) {
         }
         return cache;
     };
-};
-
-Class.validate = function(prop) {
-    if ( isFunction(prop.__self__) ) {
-        error("self_in_prop");
-    }
 };
 
 /* ============ Private Helper functions ============ */
@@ -316,3 +336,4 @@ if ( ! root.$ ) {
 root.$.Class = Class;
 
 }(this));
+  

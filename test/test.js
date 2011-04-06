@@ -223,6 +223,37 @@ test("Inheritance", function(){
     equal(c.test(), false);
     equal(c.test2(), true);
     
+    var A = $.Class({
+        init: function(){
+            
+        },
+        fn: function(){
+            
+        } 
+    });
+    
+    var B = A.extend({
+        init: function(){
+            this._parent();
+        }
+    });
+    
+    var C = B.extend({
+        init: function(){
+            this._parent.fn();
+        }
+    });
+    
+    var valid = true;
+    
+    try {
+        new C();
+    } catch(e) {
+        valid = false;
+    }
+    
+    equal(valid, true);
+    
 });
 
 test("Static", function(){
@@ -373,7 +404,7 @@ test("Instance", function(){
         count: function() {
             var i = this._parent();
             
-            i++
+            i++;
             
             return i;
             
@@ -429,18 +460,6 @@ test("Errors", function(){
         
     }, "Does a function call to a parent method that don't exist in the parent class thows an error?");
     
-    check("self_in_prop", function(){
-        
-        $.Class({__self__: function(){}});
-        
-    }, "The plugin should not allow functions called '__self__'");
-    
-    check("self_in_prop", function(){
-        
-        $.Class(true, {__self__: function(){}});
-        
-    }, "The plugin should not allow static functions called '__self__'");
-    
 });
 
 test("Helpers", function(){
@@ -451,8 +470,9 @@ test("Helpers", function(){
            
        }
        
-   }),
-   Cl2 = Cl.extend({
+   });
+   
+   var Cl2 = Cl.extend({
        
        init: function(){
            this._parent();
@@ -472,9 +492,11 @@ test("Helpers", function(){
 
    ok( ! $.Class.is(function(){}), "Can $.Class.is identify classes not created by the plugin?");
   
-   ok($.Class.fnSearch.test(Cl2.prototype.init) && $.Class.parentFnSearch.test(Cl2.prototype.test), "Can the plugin identify if a function calls a parent function");
+   ok($.Class.parentFnSearch.test(Cl2.prototype.test), "Can the plugin identify if a function calls a parent function");
+   ok($.Class.fnSearch.test(Cl2.prototype.init), "Can the plugin identify if a function calls a parent function");
   
    ok( ! $.Class.fnSearch.test(Cl2.prototype.fn), "Can the plugin identify if a function don't calls a parent function");
+   ok( ! $.Class.parentFnSearch.test(Cl2.prototype.init), "Can the plugin identify if a function don't calls a parent function");
     
    Cl = $.Class({
         
@@ -625,4 +647,41 @@ test("addMethods", function(){
     ok(instance instanceof Cl, "make sure that the instance still is the instance of it's origin");
     ok(Cl.prototype.isPrototypeOf(instance));
 
+});
+
+module("Features");
+
+test("Constructor.inherits", function() {
+    
+    var Class = $.Class({});
+    
+    var Ext = Class.extend({});
+    
+    var Ext2 = Ext.extend({});
+    
+    ok( Ext2.inherits(Ext) );
+    ok( Ext2.inherits(Class) );
+    ok( Ext.inherits(Class) );
+    ok( ! Class.inherits(Ext) );
+    
+    try {
+    
+        $.each([
+            null,
+            undefined,
+            false,
+            true,
+            [],
+            {},
+            1,
+            /ccds/,
+            "hyjukl"
+        ], function(i, v){
+            ok( ! Ext2.inherits(v) );
+        });
+        
+    } catch(e) {
+        ok(false);
+    }
+    
 });
