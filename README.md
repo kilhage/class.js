@@ -28,29 +28,7 @@ If you should find any problems, report a bug/make a pull-requests...
 Usage:
 ----------------------------
 
-* Normally when defining a class-definition in javascript, it looks something like this:
-<pre>
-// Constructor
-function YourClass(message){
-    this.message = message;
-};
-
-YourClass.prototype = {
-
-    doShit: function() {
-        // code ....
-    },
-
-    getMessage: function() {
-        return this.message;
-    }
-
-    // more methods .....
-
-});
-</pre>
-
-* This library enables you to do the same thing like this:
+* Create a basic class...
 <pre>
 var YourClass = $.Class({
     
