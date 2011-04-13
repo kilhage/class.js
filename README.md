@@ -48,10 +48,12 @@ var YourClass = $.Class({
     // more methods .....
 
 });
+
 </pre>
 
 * Initalizing
 read this: http://ejohn.org/blog/simple-class-instantiation/
+
 <pre>
 
 var object = new YourClass( "YES" );
@@ -69,7 +71,9 @@ object.doShit(); // --> call a method
 </pre>
 
 * Create a new class that extends from an existing class.
+
 <pre>
+
 var ExtendedClass = YourClass.extend({
 
     init: function() {
@@ -95,10 +99,12 @@ var ExtendedClass = YourClass.extend({
     // more methods ..
 
 });
+
 </pre>
 
 * Add properties to a existing class prototype on the fly.
 * Only adds the properties to new instance'ses of the class
+
 <pre>
 
 ExtendedClass.addMethods({
@@ -118,9 +124,11 @@ ExtendedClass.addMethods({
     // and so on ...
 
 });
+
 </pre>
 
 * Add properties to an class instance on the fly
+
 <pre>
 
 var Class = $.Class({
