@@ -29,7 +29,9 @@ Usage:
 ----------------------------
 
 * Create a basic class...
+
 <pre>
+
 var YourClass = $.Class({
     
     // Constructor is moved here..
