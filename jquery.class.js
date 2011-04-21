@@ -6,18 +6,16 @@
  * Author Emil Kilhage
  * MIT Licensed
  *--------------------------------------------*
- * Last Update: 2011-04-06 23:44:12
+ * Last Update: 2011-04-21 19:35:14
  * Version 1.0.0
  *--------------------------------------------*/
 (function(root) {
 
 var initializing = false,
-Class,
 prefix = "_Class",
 
 unique = prefix + (new Date()).getTime() + "_",
 ID = "_"+unique+"_",
-IDF = "_"+ID+"_",
 
 _searchable = (/\b_parent\b/).test(function(){this._parent();}),
 fnSearch = _searchable ? (/\b_parent\b/) : /.*/,
@@ -38,7 +36,7 @@ toString = Object.prototype.toString,
  * @return <function Awesome>
  */
 makeClass = function(){
-    function Awesome( args ) {
+    return (function Awesome( args ) {
         if ( this instanceof Awesome ) {
             // If not executing the "extend" function and an init method exist
             if ( initializing === false && isFunction(this.init) ) {
@@ -49,11 +47,7 @@ makeClass = function(){
             // Instantiate the class and pass the aruments
             return new Awesome(arguments);
         }
-    }
-
-    Awesome[ID] = true;
-
-    return Awesome;
+    });
 },
 
 /**
@@ -94,9 +88,6 @@ Base.extend = function( setStatic, prop ) {
         add(prop, src, Awesome, Class.initPopulator(src));
         prop = prototype;
     }
-
-    // Enforce the constructor to be what we expect
-    Awesome.constructor = Awesome;
     
     // Create a shallow copy of the source prototype
     initializing = true;
@@ -111,10 +102,12 @@ Base.extend = function( setStatic, prop ) {
     Awesome.prototype = prototype;
     
     /**
+     * Enforce the constructor to be what we expect
+     * 
      * Store a reference to the constructor at the prototype
      * Makes it possible to access the constructor dynamically inside an instance
      */
-    Awesome.prototype.constructor = Awesome;
+    Awesome.constructor = Awesome.prototype.constructor = Awesome;
     
     /**
      * Checks if a class inherits from another class
@@ -165,7 +158,7 @@ Base.prototype = {
  * Needed to rewrite the behaviour of this regexp's test method to work properly
  */
 parentFnSearch.test = function(fn) {
-    return test.call(parentFnSearch, fn) || fn[IDF] === true;
+    return test.call(parentFnSearch, fn) || fn[ID] === true;
 };
 
 /**
@@ -175,9 +168,9 @@ parentFnSearch.test = function(fn) {
  * @param <object> prop: The proto that you want the object to have
  * @return <function> Created class
  */
-Class = function( setStatic, prop ) {
+function Class( setStatic, prop ) {
     return Base.extend( setStatic, prop );
-};
+}
 
 Class.fnSearch = fnSearch;
 Class.parentFnSearch = parentFnSearch;
@@ -185,8 +178,8 @@ Class.log_prefix = prefix;
 
 // Error messages
 Class.errors = {
-    logic_parent_call: "Logic error, unable to call the parent function since it isn't defined..",
-    invalid_$: "Invalid data-type of the global '$' property"
+    logic_parent_call: ": Logic error, unable to call the parent function since it isn't defined..",
+    invalid_$: ": Invalid data-type of the global '$' property"
 };
 
 /**
@@ -266,7 +259,7 @@ Class.rewrite = function(name, current, parent, populator) {
                 return ret;
             };
             
-            fn[IDF] = populate;
+            fn[ID] = populate;
             
             return fn;
         }(current[name], parent[name], populator)) : current[name]);
@@ -278,7 +271,7 @@ Class.rewrite = function(name, current, parent, populator) {
  * @return <boolean>
  */
 Class.is = function(fn) {
-    return !!(fn && fn[ID] === true);
+    return !!(fn && fn.extend === Base.extend);
 };
 
 /**
@@ -323,7 +316,7 @@ function isFunction(fn) {
 }
 
 function error(key) {
-    throw (Class.log_prefix + Class.errors[key]);
+    throw (prefix + Class.errors[key]);
 }
 
 /* ================= Expose globally ================ */
@@ -339,4 +332,3 @@ if ( ! root.$ ) {
 root.$.Class = Class;
 
 }(this));
-  

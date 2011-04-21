@@ -488,6 +488,15 @@ test("Helpers", function(){
        
    });
    
+   $.each([1, "hej", null, undefined, [], {}, true, false], function(_, test_value) {
+       try {
+           ok(! $.Class.is(test_value));
+       } catch(e) {
+           log(e);
+           ok(false);
+       }
+   });
+   
    ok($.Class.is(Cl), "Can $.Class.is identify classes created by the plugin?");
 
    ok( ! $.Class.is(function(){}), "Can $.Class.is identify classes not created by the plugin?");
