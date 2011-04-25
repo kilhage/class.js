@@ -6,7 +6,7 @@
  * Author Emil Kilhage
  * MIT Licensed
  *--------------------------------------------*
- * Last Update: 2011-04-21 19:35:14
+ * Last Update: 2011-04-25 15:48:35
  * Version 1.0.0
  *--------------------------------------------*/
 (function(root) {
@@ -36,7 +36,7 @@ toString = Object.prototype.toString,
  * @return <function Awesome>
  */
 makeClass = function(){
-    return (function Awesome( args ) {
+    function Awesome( args ) {
         if ( this instanceof Awesome ) {
             // If not executing the "extend" function and an init method exist
             if ( initializing === false && isFunction(this.init) ) {
@@ -47,7 +47,9 @@ makeClass = function(){
             // Instantiate the class and pass the aruments
             return new Awesome(arguments);
         }
-    });
+    }
+    
+    return Awesome;
 },
 
 /**

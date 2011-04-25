@@ -39,7 +39,7 @@ test("Basic", function(){
     ok(!(c instanceof Cl3));
     
     try {
-        check = c.name === b.name;
+        check = c.name === b.name && b.name === val;
     } catch(e) {
         log(e.message);
         check = false;
