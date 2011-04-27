@@ -1,7 +1,7 @@
 
 log = function(m) {
     if ( typeof window.console === "object" && typeof console.log === "function" ) {
-        console.log($.Class.log_prefix, m);
+        console.log.apply(console, arguments);
     }
     return m;
 };
@@ -656,6 +656,38 @@ test("addMethods", function(){
     ok(instance instanceof Cl, "make sure that the instance still is the instance of it's origin");
     ok(Cl.prototype.isPrototypeOf(instance));
 
+});
+
+test("Unwanted properties", function() {
+
+    var C = $.Class({
+        
+        fn: function() {
+            
+        },
+        
+        fn2: function() {
+            
+        }
+        
+    });
+    
+    var T = C.extend({
+        
+        fn2: function(){
+            this._parent.fn();
+        }
+        
+    });
+    
+    C.prototype.fn2.fn = true;
+    
+    var o = new T();
+    
+    o.fn2();
+    
+    equals( C.prototype.fn2.fn, true );
+    
 });
 
 module("Features");

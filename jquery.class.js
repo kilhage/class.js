@@ -6,7 +6,7 @@
  * Author Emil Kilhage
  * MIT Licensed
  *--------------------------------------------*
- * Last Update: 2011-04-25 15:48:35
+ * Last Update: 2011-04-25 21:44:41
  * Version 1.0.0
  *--------------------------------------------*/
 (function(root) {
@@ -65,11 +65,8 @@ Base = makeClass();
 Base.extend = function( setStatic, prop ) {
 
         // Create the new class
-    var Awesome = makeClass(), 
-        name, 
-        src = this, 
-        prototype, 
-        parent = src.prototype;
+    var Awesome = makeClass(), name, src = this, 
+        prototype, parent = src.prototype;
 
     if ( typeof setStatic !== "boolean" ) {
         prop = setStatic;
@@ -86,7 +83,7 @@ Base.extend = function( setStatic, prop ) {
         }
     }
 
-    if ( setStatic === true || typeof prototype === "object" && prototype != null ) {
+    if ( setStatic === true || (typeof prototype === "object" && prototype !== null) ) {
         add(prop, src, Awesome, Class.initPopulator(src));
         prop = prototype;
     }
@@ -96,10 +93,8 @@ Base.extend = function( setStatic, prop ) {
     prototype = new src();
     initializing = false;
 
-    prop = prop || {};
-
     // Copy the properties over onto the new proto
-    add(prop, parent, prototype, Class.initPopulator(parent));
+    add(prop || {}, parent, prototype, Class.initPopulator(parent));
 
     Awesome.prototype = prototype;
     
@@ -198,7 +193,6 @@ Class.errors = {
 Class.makeClass = makeClass;
 
 /**
- * Rewrites a property
  * 
  * @param <string> name
  * @param <object> current
@@ -206,65 +200,73 @@ Class.makeClass = makeClass;
  * @param <function> populator
  * @return <function>
  */
-Class.rewrite = function(name, current, parent, populator) {
-    return ((isFunction(current[name]) && 
+Class.rewrite = function(name, current_props, parent_props, populator) {
+    var current = current_props[name], parent = parent_props[name];
+    
+    if (!(isFunction(current) && 
         // Check if we're overwriting an existing function using a parent method
-        (isFunction(parent[name]) || ! (name in parent)) &&
+        (isFunction(parent) || !(name in parent_props)) &&
         // Don't rewrite classes, and only rewrite functions that are calling a parent function
-        ! Class.is(current[name]) && fnSearch.test(current[name])) ? 
-        // Rewrite the function and make it possible to call the parent function
-        (function(current, parent, populator) {
-            parent || (parent = function() {
-                error("logic_parent_call");
-            });
-            
-            function get() {
-                if ( populate === true ) {
-                    populate = false;
-                    // Get the parent functions from the populator callback
-                    var parent_functions = populator(), name;
-                    for ( name in parent_functions) {
-                        if ( parent_functions.hasOwnProperty(name) ) {
-                            // Add the parent functions
-                            parent[name] = parent_functions[name];
-                        }
-                    }
+        ! Class.is(current) && fnSearch.test(current)))
+        return current;
+    
+    var populate = !!(isFunction(populator) && parentFnSearch.test(current)), 
+
+    /**
+     * Needed to wrap the original function inside a new function to avoid adding
+     * properties to the original function when calling 'this._parent.<method name>()'
+     */
+    _parent = parent ? function() {
+        return parent.apply(this, arguments);
+    } : function() {
+        // Make sure to throw an error when calling a method that don't exists
+        throw prefix + Class.errors.logic_parent_call;
+    },
+    
+    method = function() {
+        var self = this, set_parent = "_parent" in self, 
+            // store the content in the '_parent' property 
+            // so we can revert the object after we're done
+            tmp = self._parent, ret, parent_functions, name;
+
+        // Add the parent class's methods to 'this._parent' which enables you 
+        // to call 'this._parent<method name>()'
+        if ( populate === true ) {
+            populate = false;
+            // Get the parent functions from the populator
+            parent_functions = populator();
+            for ( name in parent_functions) {
+                if ( parent_functions.hasOwnProperty(name) ) {
+                    // Add the parent functions
+                    _parent[name] = parent_functions[name];
                 }
-                return parent;
             }
+        }
 
-            var populate = !!(isFunction(populator) && parentFnSearch.test(current)),
-                fn = function() {
-                var set_parent = "_parent" in this, 
-                    // store the content in the '_parent' property 
-                    // so we can revert the object after we're done
-                    tmp = this._parent, ret;
+        // Add a new ._parent() method that points to the parent 
+        // class's method with the same name
+        self._parent = _parent;
 
-                // Add a new ._parent() method that points to the parent class
-                this._parent = get();
+        // Save a reference to the class instance on the parent
+        // function so the other methods from the instance parent class can be called
+        self._parent[unique] = self;
 
-                // Save a reference to the class instance on the parent
-                // function so the other methods from the instance parent class can be called
-                this._parent[unique] = this;
-                
-                // execute the original function
-                ret = current.apply( this, arguments );
+        // Execute the original function
+        ret = current.apply( self, arguments );
 
-                if ( set_parent ) {
-                    this._parent = tmp;
-                } else {
-                    try {
-                        delete this._parent;
-                    } catch(e) {}
-                }
+        // Restore the context
+        if ( set_parent ) {
+            self._parent = tmp;
+        } else {
+            delete self._parent;
+        }
 
-                return ret;
-            };
-            
-            fn[ID] = populate;
-            
-            return fn;
-        }(current[name], parent[name], populator)) : current[name]);
+        return ret;
+    }
+
+    method[ID] = populate;
+
+    return method;
 };
 
 /**
@@ -282,10 +284,10 @@ Class.is = function(fn) {
  * @return <function>
  */
 Class.initPopulator = function(parent) {
-    var cache;
+    var cache = null;
     return function(){
         // Only build this once
-        if ( cache == null ) {
+        if ( cache === null ) {
             cache = {};
             for ( var key in parent ) {
                 if ( isFunction(parent[key]) ) {
@@ -317,16 +319,12 @@ function isFunction(fn) {
     return toString.call(fn) === "[object Function]";
 }
 
-function error(key) {
-    throw (prefix + Class.errors[key]);
-}
-
 /* ================= Expose globally ================ */
 
 if ( ! root.$ ) {
     // Make sure that $ isn't overwritten..
     if ( "$" in root ) {
-        error("invalid_$");
+        throw prefix + Class.errors.invalid_$;
     }
     root.$ = {};
 }
