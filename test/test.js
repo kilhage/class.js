@@ -58,7 +58,7 @@ function type( obj ) {
         class2type[ toString.call(obj) ] || "object";
 };
 
-function log(){
+function log(m){
     if ( typeof console === "object" && typeof console.log === "function" ) {
         console.log.apply(console, arguments);
     }
@@ -205,6 +205,8 @@ test("Basic", function(){
 
 test("Inheritance", function(){
     
+    var valid = true;
+    
     var Cl = Class({
         
         fn: function() {
@@ -223,8 +225,10 @@ test("Inheritance", function(){
             return "not the "+this._parent();
         },
         
-        newSet: function(key, value){
-            this._parent.set(key, value);
+        newSet: function(key, value) {
+            ok((valid = (typeof this._parent.set == "function")), "could not call parent functions");
+            if ( valid )
+                this._parent.set(key, value);
             return value;
         }
         
@@ -235,6 +239,9 @@ test("Inheritance", function(){
     equals(c.fn(), "not the first");
     
     equals(c.newSet("test", "vaaalue"), c.test);
+    
+    if ( ! valid )
+        return;
     
     Cl2.addMethods({
         

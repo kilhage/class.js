@@ -1,5 +1,6 @@
 
 var u = require("./utils.js");
+var JSLINT = require("./lib/jslint.js");
 
 var version = u.version("1.1.0");
 
@@ -23,24 +24,39 @@ var types = {
     }
 };
 
-var type = process.argv[2];
+var l = lint();
 
-if ( ! type ) {
-    u.each(types, function(type){
-        console.log();
+if ( l == true ) {
+    
+    console.log("\njslint passed");
+
+    var type = process.argv[2];
+
+    if ( ! type ) {
+        u.each(types, function(type){
+            console.log();
+            build(type);
+        })
+    } else {
         build(type);
-    })
+    }
+
+    u.save("README.md", u.data.readme);
+
+    console.log("\ndone !");
+
 } else {
-    build(type);
+    
+    console.log("\njslint not passed\n");
+
+    l.forEach(function(e) {
+        if ( e )
+            console.log("Error at line %s, char %s, reason: %s", e.line, e.character, e.reason);
+    });
+    
+    console.log("\nFix this shit!");
+
 }
-
-console.log();
-
-u.save("README.md", u.data.readme);
-
-console.log();
-
-console.log("done !");
 
 function getComment(env) {
     return u.parse(u.data.comment, {"@ENV": env});
@@ -66,4 +82,11 @@ function build(type) {
     console.log("Enviroment: " + type + ", version: " + version);
 
     types[type].call(u.data, u.data);
+}
+
+function lint() {
+    var ok = JSLINT(u.data.content, {
+        forin: true
+    });
+    return ok ? true : JSLINT.data().errors;
 }

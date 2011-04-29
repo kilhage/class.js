@@ -5,7 +5,7 @@
  * Released under the MIT License
  *--------------------------------------------*
  * Environment-release: jQuery
- * Last Update: 2011-03-29 21:04:13
+ * Last Update: 2011-03-29 22:36:57
  * Version 1.1.0
  *--------------------------------------------*/
 jQuery.Class = (function() {
@@ -54,11 +54,11 @@ Base.extend = function( setStatic, prop ) {
     var Awesome = makeClass(), name, src = this, 
         prototype, parent = src.prototype;
 
-    if ( typeof setStatic != "boolean" ) {
+    if ( typeof setStatic !== "boolean" ) {
         prop = setStatic;
     }
 
-    prop = typeof prop == "object" && prop !== null ? prop : {};
+    prop = typeof prop === "object" && prop !== null ? prop : {};
     
     prototype = prop.prototype;
 
@@ -69,7 +69,7 @@ Base.extend = function( setStatic, prop ) {
         }
     }
 
-    if ( setStatic === true || (typeof prototype == "object" && prototype !== null) ) {
+    if ( setStatic === true || (typeof prototype === "object" && prototype !== null) ) {
         add(prop, src, Awesome, initPopulator(src));
         prop = prototype;
     }
@@ -94,7 +94,7 @@ Base.extend = function( setStatic, prop ) {
      * @return <boolean>
      */
     Awesome.inherits = function(parent) {
-        return parent == src || src.inherits(parent);
+        return parent === src || src.inherits(parent);
     };
     
     return Awesome;
@@ -149,7 +149,7 @@ Class.errors = errors;
  * @return <boolean>: if fn is created by this library
  */
 function is(fn) {
-    return !!(fn && fn.extend == Base.extend);
+    return !!(fn && fn.extend === Base.extend);
 }
 
 Class.is = is;
@@ -171,7 +171,7 @@ function makeClass() {
             // If not executing the "extend" function and an init method exist
             if ( initializing === false && isFunction(this.init) ) {
                 // Call the "real" constructor and apply the arguments
-                this.init.apply(this, args && args.callee == Awesome ? args : arguments);
+                this.init.apply(this, args && args.callee === Awesome ? args : arguments);
             }
         } else {
             // Instantiate the class and pass the aruments
@@ -187,19 +187,13 @@ Class.makeClass = makeClass;
 /* ============ Private Helper functions ============ */
 
 function initPopulator(parent) {
-    var cache = null;
-    return function() {
-        // Only build this once
-        if ( cache === null ) {
-            cache = {};
-            for ( var key in parent ) {
-                if ( isFunction(parent[key]) ) {
-                    cache[key] = rewriteFn(parent[key]);
-                }
-            }
+    var fns = {}, key;
+    for ( key in parent ) {
+        if ( isFunction(parent[key]) ) {
+            fns[key] = rewriteFn(parent[key]);
         }
-        return cache;
-    };
+    }
+    return fns;
 }
 
 function rewriteFn(fn) {
@@ -208,20 +202,20 @@ function rewriteFn(fn) {
     };
 }
 
-function rewrite(name, current_props, parent_props, populator) {
+function rewrite(name, current_props, parent_props, fns) {
     var current = current_props[name], parent = parent_props[name];
     
     if (!(isFunction(current) && 
         // Check if we're overwriting an existing function using a parent method
-        (isFunction(parent) || !(name in parent_props)) &&
+        (isFunction(parent) || !(hasOwn.call(parent_props, name))) &&
         // Don't rewrite classes, and only rewrite functions that are calling a parent function
         ! is(current) && fnSearch.test(current))) {
         
         return current;
     }
     
-    var populate = !!(isFunction(populator) && parentFnSearch.test(current)),
-
+    var populate = !!(typeof fns === "object" && fns !== null && parentFnSearch.test(current)),
+    
     /**
      * Needed to wrap the original function inside a new function to avoid adding
      * properties to the original function when calling 'this._parent.<method name>()'
@@ -234,23 +228,23 @@ function rewrite(name, current_props, parent_props, populator) {
     },
     
     method = function() {
-        var self = this, set_parent = "_parent" in self, 
+        var self = this, set_parent = hasOwn.call(self, "_parent"), 
             // store the content in the '_parent' property 
             // so we can revert the object after we're done
-            tmp = self._parent, ret, parent_functions, name;
+            tmp = self._parent, ret, name;
 
         // Add the parent class's methods to 'this._parent' which enables you 
         // to call 'this._parent<method name>()'
         if ( populate === true ) {
             populate = false;
-            // Get the parent functions from the populator
-            parent_functions = populator();
-            for ( name in parent_functions) {
-                if ( hasOwn.call(parent_functions, name) ) {
+            for ( name in fns ) {
+                if ( hasOwn.call(fns, name) ) {
                     // Add the parent functions
-                    _parent[name] = parent_functions[name];
+                    _parent[name] = fns[name];
                 }
             }
+            // Remove the reference to this object from the scope.
+            fns = null;
         }
 
         // Add a new ._parent() method that points to the parent 
@@ -279,17 +273,18 @@ function rewrite(name, current_props, parent_props, populator) {
     return method;
 }
 
-function add(from, ref, to, populator) {
-    to || (to = ref);
-    for ( var name in from ) {
+function add(from, ref, to, fns) {
+    var name;
+    to = to || ref;
+    for ( name in from ) {
         if( hasOwn.call(from, name) ) {
-            to[name] = rewrite( name, from, ref, populator );
+            to[name] = rewrite( name, from, ref, fns );
         }
     }
 }
 
 function isFunction(fn) {
-    return toString.call(fn) == "[object Function]";
+    return toString.call(fn) === "[object Function]";
 }
 
 return Class;
