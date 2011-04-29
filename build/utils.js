@@ -14,7 +14,15 @@ var date = (function() {
     ].join("-")+" "+d.toLocaleTimeString();
 }());
 
-var path = process.env.PWD+"/../";
+var path = process.env.PWD;
+
+if ( fs.readdirSync(path).indexOf("src") == -1 )
+    path += "/.."
+    
+path += "/";
+
+if ( fs.readdirSync(path).indexOf("src") == -1 )
+    throw "invalid path: " + path;
 
 var data = {};
 

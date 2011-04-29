@@ -1,6 +1,6 @@
 
 var u = require("./utils.js");
-var JSLINT = require("./lib/jslint.js");
+var lint = require("./lint.js");
 
 var version = u.version("1.1.0");
 
@@ -24,11 +24,9 @@ var types = {
     }
 };
 
-var l = lint();
+var l = lint.result;
 
 if ( l == true ) {
-    
-    console.log("\njslint passed");
 
     var type = process.argv[2];
 
@@ -44,17 +42,6 @@ if ( l == true ) {
     u.save("README.md", u.data.readme);
 
     console.log("\ndone !");
-
-} else {
-    
-    console.log("\njslint not passed\n");
-
-    l.forEach(function(e) {
-        if ( e )
-            console.log("Error at line %s, char %s, reason: %s", e.line, e.character, e.reason);
-    });
-    
-    console.log("\nFix this shit!");
 
 }
 
@@ -84,9 +71,3 @@ function build(type) {
     types[type].call(u.data, u.data);
 }
 
-function lint() {
-    var ok = JSLINT(u.data.content, {
-        forin: true
-    });
-    return ok ? true : JSLINT.data().errors;
-}

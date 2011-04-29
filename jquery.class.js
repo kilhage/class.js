@@ -5,7 +5,7 @@
  * Released under the MIT License
  *--------------------------------------------*
  * Environment-release: jQuery
- * Last Update: 2011-03-29 22:36:57
+ * Last Update: 2011-03-29 23:18:34
  * Version 1.1.0
  *--------------------------------------------*/
 jQuery.Class = (function() {
@@ -202,8 +202,13 @@ function rewriteFn(fn) {
     };
 }
 
+// Make sure to throw an error when calling a method that don't exists
+function logic_parent_call(){
+    throw errors.logic_parent_call;
+}
+
 function rewrite(name, current_props, parent_props, fns) {
-    var current = current_props[name], parent = parent_props[name];
+    var current = current_props[name], parent = parent_props[name], _parent = logic_parent_call, populate, method;
     
     if (!(isFunction(current) && 
         // Check if we're overwriting an existing function using a parent method
@@ -214,18 +219,17 @@ function rewrite(name, current_props, parent_props, fns) {
         return current;
     }
     
-    var populate = !!(typeof fns === "object" && fns !== null && parentFnSearch.test(current)),
+    populate = !!(typeof fns === "object" && fns !== null && parentFnSearch.test(current));
     
     /**
      * Needed to wrap the original function inside a new function to avoid adding
      * properties to the original function when calling 'this._parent.<method name>()'
      */
-    _parent = parent ? function() {
-        return parent.apply(this, arguments);
-    } : function() {
-        // Make sure to throw an error when calling a method that don't exists
-        throw errors.logic_parent_call;
-    },
+    if ( parent !== undefined ) {
+        _parent = function() {
+            return parent.apply(this, arguments);
+        };
+    }
     
     method = function() {
         var self = this, set_parent = hasOwn.call(self, "_parent"), 
