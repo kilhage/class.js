@@ -5,7 +5,7 @@
  * Released under the MIT License
  *--------------------------------------------*
  * Environment-release: jQuery
- * Last Update: 2011-03-29 20:59:39
+ * Last Update: 2011-03-29 21:02:35
  * Version 1.1.0
  *--------------------------------------------*/
 jQuery.Class = (function() {

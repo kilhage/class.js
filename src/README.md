@@ -61,16 +61,6 @@ var instance = new MyClass();
 
 ### js ###
 
-* html
-
-<pre>
-
-<script src="path/to/the/lib/js.class.min.js"></script>
-
-</pre>
-
-* javascript
-
 <pre>
 
 var MyClass = Class({
@@ -86,16 +76,6 @@ var instance = new MyClass();
 </pre>
 
 ### [jQuery](https://github.com/jquery/jquery) ###
-
-* html
-
-<pre>
-
-<script src="path/to/the/lib/jquery.class.min.js"></script>
-
-</pre>
-
-* javascript
 
 <pre>
 
