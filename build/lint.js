@@ -5,7 +5,11 @@ var u = require("./utils.js");
 function lint(content) {
     var ok = JSLINT(content, {
         forin: true,
-        onevar: true
+        onevar: true,
+        debug: false,
+        indent: 4,
+        white: true,
+        strict: true
     });
     
     if ( ! ok )

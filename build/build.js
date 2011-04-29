@@ -31,7 +31,7 @@ if ( l == true ) {
     var type = process.argv[2];
 
     if ( ! type ) {
-        u.each(types, function(type){
+        u.each(types, function(type) {
             console.log();
             build(type);
         })
@@ -46,7 +46,9 @@ if ( l == true ) {
 }
 
 function getComment(env) {
-    return u.parse(u.data.comment, {"@ENV": env});
+    return u.parse(u.data.comment, {
+        "@ENV": env
+    });
 }
 
 function buildClientSide(d, name, prefix) {
@@ -70,4 +72,3 @@ function build(type) {
 
     types[type].call(u.data, u.data);
 }
-
