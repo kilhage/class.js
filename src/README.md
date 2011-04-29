@@ -21,7 +21,7 @@ They have been integrated with each other and improved in many ways..
 Iv'e made alot of unit testing on this that covers all the functionality, and many ways to use this.
 Everything around this is also very performance optimized.
 
-The library comes in 3 environment releases:
+* The library comes in 3 environment releases: *
 
  * js: Works for any browser environment
  * node.js: Designed for node.js environments
@@ -37,10 +37,10 @@ Iv'e runned the unit tests in following environments:
 
 If you should find any problems, report a bug/make a pull-requests...
 
-Examples with the other releases:
+Examples:
 ----------------------------
 
-*node.js*
+### [node.js](https://github.com/joyent/node) ###
 
 <pre>
 
@@ -59,12 +59,14 @@ var instance = new MyClass();
 
 </pre>
 
-*js*
+### js ###
 
 * html
 
 <pre>
+
 <script src="path/to/the/lib/js.class.min.js"></script>
+
 </pre>
 
 * javascript
@@ -83,12 +85,14 @@ var instance = new MyClass();
 
 </pre>
 
-*jQuery*
+### [jQuery](https://github.com/jquery/jquery) ###
 
 * html
 
 <pre>
+
 <script src="path/to/the/lib/jquery.class.min.js"></script>
+
 </pre>
 
 * javascript
