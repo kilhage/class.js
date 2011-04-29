@@ -5,8 +5,8 @@ About
 ----------------------------
  * Copyright 2011, Emil Kilhage
  * Released under the MIT License
- * Last Updated: 2011-03-29 20:50:48
- * Current version: 1.1.0
+ * Last Updated: @DATE
+ * Current version: @VERSION
 
 This library allows you to create Class-like functions in an very effective and nice way.
 I found this very useful when working with large projects needing structure, scalability 

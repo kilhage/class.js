@@ -7,10 +7,10 @@
     <script src="jquery.js"></script>
     <script src="bench/jquery-benchmark.js"></script>
     <script src="bench/jquery-benchmark-suit.js"></script>
-    <script src="../jquery.class<?php echo isset($_GET["a"]) ? $_GET["a"] : "" ?>.js"></script>
+    <script src="../../jquery.class<?php echo isset($_GET["a"]) ? $_GET["a"] : "" ?>.js"></script>
     <script>
 
-plugin("jQuery - Class");
+plugin("jQuery.Class");
 
 module("Build");
 
@@ -77,21 +77,6 @@ var fns = {};
 var times = 50;
 while(times--)
     fns["fn"+times] = function(){};
-
-test("$.Class.initPopulator(50 functions) and $.Class.rewrite(20.000 times), this._parent - call", 20000, function(t){
-    var populator = $.Class.initPopulator(fns)
-    fns.test = function(){this._parent();}
-    while(t--)
-        $.Class.rewrite("test", fns, fns, populator);
-});
-
-test("$.Class.initPopulator(50 functions) and $.Class.rewrite(20.000 times), this._parent.fn - call", 20000, function(t){
-    var populator = $.Class.initPopulator(fns)
-    fns.test = function(){this._parent.fn0();};
-    while(t--)
-        $.Class.rewrite("test", fns, fns, populator);
-
-});
 
 test("Extending an instance", 10000, function(t){
     

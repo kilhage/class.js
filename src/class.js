@@ -1,14 +1,4 @@
-/*--------------------------------------------*
- * https://github.com/kilhage/javascript-class
- *--------------------------------------------*
- * Copyright 2011, Emil Kilhage
- * Released under the MIT License
- *--------------------------------------------*
- * Environment-release: jQuery
- * Last Update: 2011-03-29 20:50:48
- * Version 1.1.0
- *--------------------------------------------*/
-jQuery.Class = (function() {
+(function() {
 
 var initializing = false,
     prefix = "Class",

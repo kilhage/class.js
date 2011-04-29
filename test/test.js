@@ -1,19 +1,141 @@
+/**
+ * Unit tests for both client and server side
+ */
 
-log = function(m) {
-    if ( typeof window.console === "object" && typeof console.log === "function" ) {
+/* Some stuff to simplify the testing */
+
+var toString = Object.prototype.toString;
+
+function each( object, callback, args ) {
+    var name, i = 0,
+        length = object.length,
+        isObj = length === undefined || isFunction(object);
+
+    if ( args ) {
+        if ( isObj ) {
+            for ( name in object ) {
+                if ( callback.apply( object[ name ], args ) === false ) {
+                    break;
+                }
+            }
+        } else {
+            for ( ; i < length; ) {
+                if ( callback.apply( object[ i++ ], args ) === false ) {
+                    break;
+                }
+            }
+        }
+        
+    } else {
+        if ( isObj ) {
+            for ( name in object ) {
+                if ( callback.call( object[ name ], name, object[ name ] ) === false ) {
+                    break;
+                }
+            }
+        } else {
+            for ( var value = object[0];
+                i < length && callback.call( value, i, value ) !== false; value = object[++i] ) {}
+        }
+    }
+
+    return object;
+};
+
+function isFunction(fn) {
+    return toString.call(fn) == "[object Function]";
+};
+
+var class2type = {};
+
+each("Boolean Number String Function Array Date RegExp Object".split(" "), function(i, name) {
+	class2type[ "[object " + name + "]" ] = name.toLowerCase();
+});
+
+function type( obj ) {
+    return obj == null ?
+        String( obj ) :
+        class2type[ toString.call(obj) ] || "object";
+};
+
+function log(){
+    if ( typeof console === "object" && typeof console.log === "function" ) {
         console.log.apply(console, arguments);
     }
     return m;
 };
 
-module("Usage");
+function testModule(name) {
+    if ( isFunction(module) ) {
+        module(name);
+    } else {
+        this.currentModule = name;
+    }
+}
+
+/* The tests starts here */
+
+testModule("Initial Check");
+
+test("Class.makeClass", function() {
+    
+    var C = Class.makeClass();
+    
+    equal(type(C), "function");
+    
+    equal(type(new C()), "object");
+    equal(type(C()), "object");
+    
+    var valid = false;
+    
+    function check() {
+        equal(valid, true);
+    }
+    
+    C.prototype.init = function(c) {
+        valid = c !== false;
+    };
+    
+    valid = false;
+    
+    new C(true);
+    
+    check();
+    
+    valid = false;
+    
+    C(true);
+    
+    check();
+    
+    function t() {
+        new C(arguments);
+    }
+    
+    t(false);
+    
+    check();
+    
+    valid = false;
+    
+    try {
+        new C(null);
+    } catch(e) {
+        valid = false;
+    }
+    
+    ok(valid);
+    
+});
+
+testModule("Usage");
 
 test("Basic", function(){
     
     var val = "name",
     check,
     
-    Cl = $.Class({
+    Cl = Class({
         
         init: function(name){
             this.name = name;
@@ -21,7 +143,7 @@ test("Basic", function(){
         
     }),
     
-    Cl2 = $.Class({}),
+    Cl2 = Class({}),
     
     Cl3 = Cl.extend({}),
     
@@ -49,28 +171,28 @@ test("Basic", function(){
     
     check = true;
     try {
-        var C = $.Class();
+        var C = Class();
         var t = new C();
         
-        C = $.Class(true);
+        C = Class(true);
         t = new C;
         
-        C = $.Class({});
+        C = Class({});
         t = new C();
         
-        C = $.Class(true, {});
+        C = Class(true, {});
         t = new C();
         
-        C = $.Class();
+        C = Class();
         t = C();
         
-        C = $.Class(true);
+        C = Class(true);
         t = C;
         
-        C = $.Class({});
+        C = Class({});
         t = C();
         
-        C = $.Class(true, {});
+        C = Class(true, {});
         t = C();
     } catch(e) {
         log(e.message);
@@ -83,7 +205,7 @@ test("Basic", function(){
 
 test("Inheritance", function(){
     
-    var Cl = $.Class({
+    var Cl = Class({
         
         fn: function() {
             return "first";
@@ -129,7 +251,7 @@ test("Inheritance", function(){
     var t = 100, y = false, b = t;
     try {
         Cls = {};
-        Cls[t] = $.Class({
+        Cls[t] = Class({
             n: 100,
 
             fn:function(){
@@ -194,8 +316,8 @@ test("Inheritance", function(){
     
     ok(y, "Build really long inheritance chains");
     
-    Cl = $.Class({
-        subClass: $.Class({
+    Cl = Class({
+        subClass: Class({
             fn: function(){
                 return true;
             }
@@ -207,7 +329,7 @@ test("Inheritance", function(){
     });
     
     Cl2 = Cl.extend({
-        subClass: $.Class({
+        subClass: Class({
             fn: function(){
                 return false;
             }
@@ -223,7 +345,7 @@ test("Inheritance", function(){
     equal(c.test(), false);
     equal(c.test2(), true);
     
-    var A = $.Class({
+    var A = Class({
         init: function(){
             
         },
@@ -258,7 +380,7 @@ test("Inheritance", function(){
 
 test("Static", function(){
     
-    var Cl = $.Class(true, {
+    var Cl = Class(true, {
         
         staticFn: function(val) {
             this.prop = val;
@@ -306,7 +428,7 @@ test("Static", function(){
     
     equals(c.foo, Cl2.prototype.prop);
     
-    Cl = $.Class({
+    Cl = Class({
         
         staticFn: function(val) {
             this.prop = val;
@@ -358,7 +480,7 @@ test("Static", function(){
 
 test("Instance", function(){
     
-    var Cl = $.Class({
+    var Cl = Class({
         
         init: function() {
             this.i = 0;
@@ -427,14 +549,14 @@ test("Instance", function(){
     
     equals(instance.count(), 0, "Make sure that only the instance are modified");
     
-    equals($.type(instance.get), "undefined");
+    equals(type(instance.get), "undefined");
     
     ok(instance instanceof Cl);
     ok(Cl.prototype.isPrototypeOf(instance));
 
 });
 
-module("Internal");
+testModule("Internal");
 
 test("Errors", function(){
     var check = function(name, fn, message){
@@ -442,13 +564,13 @@ test("Errors", function(){
         try {
              fn();
         } catch(e) {
-            check = e == $.Class.log_prefix + $.Class.errors[name];
+            check = e == Class.errors[name];
         }
         ok(check, message);
     };
     
     check("logic_parent_call", function(){
-        var Cl = $.Class({
+        var Cl = Class({
             callToUndefined: function(){
                 this._parent();
             }
@@ -464,7 +586,7 @@ test("Errors", function(){
 
 test("Helpers", function(){
    
-   var Cl = $.Class({
+   var Cl = Class({
        
        init: function(){
            
@@ -488,26 +610,26 @@ test("Helpers", function(){
        
    });
    
-   $.each([1, "hej", null, undefined, [], {}, true, false], function(_, test_value) {
+   each([1, "hej", null, undefined, [], {}, true, false], function(_, test_value) {
        try {
-           ok(! $.Class.is(test_value));
+           ok(! Class.is(test_value));
        } catch(e) {
            log(e);
            ok(false);
        }
    });
    
-   ok($.Class.is(Cl), "Can $.Class.is identify classes created by the plugin?");
+   ok(Class.is(Cl), "Can Class.is identify classes created by the plugin?");
 
-   ok( ! $.Class.is(function(){}), "Can $.Class.is identify classes not created by the plugin?");
+   ok( ! Class.is(function(){}), "Can Class.is identify classes not created by the plugin?");
   
-   ok($.Class.parentFnSearch.test(Cl2.prototype.test), "Can the plugin identify if a function calls a parent function");
-   ok($.Class.fnSearch.test(Cl2.prototype.init), "Can the plugin identify if a function calls a parent function");
+   ok(Class.parentFnSearch.test(Cl2.prototype.test), "Can the plugin identify if a function calls a parent function");
+   ok(Class.fnSearch.test(Cl2.prototype.init), "Can the plugin identify if a function calls a parent function");
   
-   ok( ! $.Class.fnSearch.test(Cl2.prototype.fn), "Can the plugin identify if a function don't calls a parent function");
-   ok( ! $.Class.parentFnSearch.test(Cl2.prototype.init), "Can the plugin identify if a function don't calls a parent function");
+   ok( ! Class.fnSearch.test(Cl2.prototype.fn), "Can the plugin identify if a function don't calls a parent function");
+   ok( ! Class.parentFnSearch.test(Cl2.prototype.init), "Can the plugin identify if a function don't calls a parent function");
     
-   Cl = $.Class({
+   Cl = Class({
         
         init: function() {
             
@@ -557,11 +679,11 @@ test("Evil", function(){
        "RegExp": /_parent/
    };
    
-   $.each(tests, function( i, v ) {
+   each(tests, function( i, v ) {
        var b = 2, args, nargs, c, m;
        while(b--) {
            check = true;
-           m = "$.Class( ";
+           m = "Class( ";
            try {
                args = [];
                nargs = [];
@@ -570,7 +692,7 @@ test("Evil", function(){
                    nargs.push(i);
                }
                m += nargs.join(", ")+" )";
-               Cl = $.Class.apply($.Class, args);
+               Cl = Class.apply(Class, args);
                t = new Cl();
            } catch(e) {
                check = false;
@@ -581,7 +703,7 @@ test("Evil", function(){
        }
    });
     
-    Cl = $.Class({
+    Cl = Class({
         
         init: function(){}
         
@@ -599,11 +721,11 @@ test("Evil", function(){
    
 });
 
-module("Bugs");
+testModule("Bugs");
 
 test("RegExp's of pure evil", function() {
    
-   var Cl = $.Class({
+   var Cl = Class({
        
        preg: /_parent/
        
@@ -611,9 +733,9 @@ test("RegExp's of pure evil", function() {
    
    var Cl2 = Cl.extend({});
    
-   ok($.type(Cl2.prototype.preg) === "regexp", "Are the $.Class.rewrite function only rewriting functions?");
+   ok(type(Cl2.prototype.preg) === "regexp", "Are the Class.rewrite function only rewriting functions?");
     
-   Cl = $.Class({
+   Cl = Class({
         
         init: /fwscds/
         
@@ -635,7 +757,7 @@ test("RegExp's of pure evil", function() {
 
 test("addMethods", function(){
     
-    var Cl = $.Class({
+    var Cl = Class({
         
         get: function(){
             return "hi there";
@@ -660,7 +782,7 @@ test("addMethods", function(){
 
 test("Unwanted properties", function() {
 
-    var C = $.Class({
+    var C = Class({
         
         fn: function() {
             
@@ -690,24 +812,24 @@ test("Unwanted properties", function() {
     
 });
 
-module("Features");
+testModule("Features");
 
 test("Constructor.inherits", function() {
     
-    var Class = $.Class({});
+    var Cl = Class({});
     
-    var Ext = Class.extend({});
+    var Ext = Cl.extend({});
     
     var Ext2 = Ext.extend({});
     
     ok( Ext2.inherits(Ext) );
-    ok( Ext2.inherits(Class) );
-    ok( Ext.inherits(Class) );
-    ok( ! Class.inherits(Ext) );
+    ok( Ext2.inherits(Cl) );
+    ok( Ext.inherits(Cl) );
+    ok( ! Cl.inherits(Ext) );
     
     try {
     
-        $.each([
+        each([
             null,
             undefined,
             false,

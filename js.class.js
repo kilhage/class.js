@@ -4,11 +4,11 @@
  * Copyright 2011, Emil Kilhage
  * Released under the MIT License
  *--------------------------------------------*
- * Environment-release: jQuery
+ * Environment-release: js
  * Last Update: 2011-03-29 20:50:48
  * Version 1.1.0
  *--------------------------------------------*/
-jQuery.Class = (function() {
+var Class = (function() {
 
 var initializing = false,
     prefix = "Class",
