@@ -63,11 +63,7 @@ var instance = new MyClass();
 
 * html
 
-<pre>
-
-<script src="path/to/the/lib/js.class.min.js"></script>
-
-</pre>
+´<script src="path/to/the/lib/js.class.min.js"></script>´
 
 * javascript
 
@@ -89,11 +85,7 @@ var instance = new MyClass();
 
 * html
 
-<pre>
-
-<script src="path/to/the/lib/jquery.class.min.js"></script>
-
-</pre>
+´<script src="path/to/the/lib/jquery.class.min.js"></script>´
 
 * javascript
 
