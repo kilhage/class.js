@@ -7,16 +7,17 @@
         unique = prefix + (new Date()).getTime(),
         unique2 = unique + 1,
 
-        _searchable = /\b_parent\b/.test(function () { this._parent(); }),
-        fnSearch = _searchable ? (/\b_parent\b/) : /.*/,
-        parentFnSearch = _searchable ? (/\b_parent\b\./) : /.*/,
+        fnSearchable = /\b_parent\b/.test(function () { this._parent(); }),
+        fnSearch = fnSearchable ? (/\b_parent\b/) : /.*/,
+        parentFnSearch = fnSearchable ? (/\b_parent\b\./) : /.*/,
 
         test = RegExp.prototype.test,
         toString = Object.prototype.toString,
         hasOwn = Object.prototype.hasOwnProperty,
 
         errors = {
-            logic_parent_call: prefix + ":Logic error, unable to call the parent function since it isn't defined.."
+            logic_parent_call: prefix + ":Logic error, unable to call the parent " + 
+                                        "function since it isn't defined.."
         };
 
     // Needed to rewrite the behaviour of this regexp's test method to work properly
@@ -63,7 +64,9 @@
                 // If not executing the "extend" function and an init method exist
                 if (initializing === false && isFunction(this.init)) {
                     // Call the "real" constructor and apply the arguments
-                    this.init.apply(this, args && args.callee === Awesome ? args : arguments);
+                    this.init.apply(this, args && args.callee === Awesome ? 
+                                                    args : 
+                                                    arguments);
                 }
             } else {
                 // Instantiate the class and pass the aruments
@@ -104,25 +107,31 @@
     }
 
     function rewrite(name, current_props, parent_props, fns) {
-        var current = current_props[name], parent = parent_props[name], _parent = logic_parent_call, populate, method;
+        var current = current_props[name], parent = parent_props[name], 
+            realParent = logic_parent_call, populate, method;
 
         if (!(isFunction(current) && 
             // Check if we're overwriting an existing function using a parent method
             (isFunction(parent) || !(hasOwn.call(parent_props, name))) &&
-            // Don't rewrite classes, and only rewrite functions that are calling a parent function
+            // Don't rewrite classes, and only rewrite 
+            // functions that are calling a parent function
             !is(current) && fnSearch.test(current))) {
 
             return current;
         }
 
-        populate = !!(typeof fns === "object" && fns !== null && parentFnSearch.test(current));
+        populate = typeof fns === "object" && 
+            fns !== null &&
+            parentFnSearch.test(current);
 
         /**
-         * Needed to wrap the original function inside a new function to avoid adding
-         * properties to the original function when calling 'this._parent.<method name>()'
+         * Needed to wrap the original function 
+         * inside a new function to avoid adding
+         * properties to the original function 
+         * when calling 'this._parent.<method name>()'
          */
         if (parent !== undefined) {
-            _parent = function () {
+            realParent = function () {
                 return parent.apply(this, arguments);
             };
         }
@@ -140,7 +149,7 @@
                 for (name in fns) {
                     if (hasOwn.call(fns, name)) {
                         // Add the parent functions
-                        _parent[name] = fns[name];
+                        realParent[name] = fns[name];
                     }
                 }
                 // Remove the reference to this object from the scope.
@@ -149,10 +158,11 @@
 
             // Add a new ._parent() method that points to the parent 
             // class's method with the same name
-            self._parent = _parent;
+            self._parent = realParent;
 
             // Save a reference to the class instance on the parent
-            // function so the other methods from the instance parent class can be called
+            // function so the other methods from the 
+            // instance parent class can be called
             self._parent[unique] = self;
 
             // Execute the original function
@@ -211,7 +221,8 @@
             }
         }
 
-        if (setStatic === true || (typeof prototype === "object" && prototype !== null)) {
+        if (setStatic === true ||
+                (typeof prototype === "object" && prototype !== null)) {
             add(prop, Src, Awesome, initPopulator(Src));
             prop = prototype;
         }
