@@ -21,6 +21,7 @@ function getComment(env) {
 function buildClientSide(d, name, prefix) {
     lint.options.browser = true;
     var content = lint.optionsAsComment(lint.options) + "\n", c;
+    delete lint.options.browser;
     content += prefix + " = ";
     content += d.content;
     
@@ -54,6 +55,7 @@ types = {
         var content = getComment("node.js");
         lint.options.node = true;
         content += "\n" + lint.optionsAsComment(lint.options);
+        delete lint.options.node;
         content += "\nmodule.exports = ";
         content += d.content + "\n";
 

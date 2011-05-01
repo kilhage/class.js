@@ -5,13 +5,13 @@
  * Released under the MIT License
  *--------------------------------------------*
  * Environment-release: js
- * Last Update: 2011-04-02 00:13:35
+ * Last Update: 2011-04-02 00:21:51
  * Version 1.1.0
  *--------------------------------------------*/
 /*jslint forin: true, onevar: true, debug: false, indent: 4
    white: true, strict: true, undef: true, newcap: true
    maxlen: 85, evil: false, nomen: false, regexp: false
-   browser: true, node: true */
+   browser: true */
 var Class = (function () {
     "use strict";
 
