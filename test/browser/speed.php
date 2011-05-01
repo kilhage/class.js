@@ -19,12 +19,21 @@ test("Building 20.000 basic classes", 10000, function(t){
     while(t--) {
         a = $.Class({
 
-            init: function(){}
+            init: function(){},
+            fn: function(){},
+            ds: function(){},
+            fds: function(){},
+            fds: function(){}
 
         });
 
         b = a.extend({
-            init: function(){this._parent();}
+            init: function(){this._parent();},
+            fds: function(){},
+            asd: function(){},
+            vcx: function(){},
+            few: function(){},
+            dqw: function(){}
         });
     }
 });

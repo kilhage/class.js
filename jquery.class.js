@@ -5,7 +5,7 @@
  * Released under the MIT License
  *--------------------------------------------*
  * Environment-release: jQuery
- * Last Update: 2011-04-02 01:17:39
+ * Last Update: 2011-04-02 01:50:12
  * Version 1.1.0
  *--------------------------------------------*/
 /*jslint forin: true, onevar: true, debug: false, indent: 4
@@ -35,7 +35,8 @@ jQuery.Class = (function () {
                                         "function since it isn't defined.."
         };
 
-    // Needed to rewrite the behaviour of this regexp's test method to work properly
+    // Needed to rewrite the behaviour 
+    // of this regexp's test method to work properly
     parentFnSearch.test = function (fn) {
         return test.call(parentFnSearch, fn) || fn[unique2] === true;
     };
@@ -98,13 +99,19 @@ jQuery.Class = (function () {
     }
 
     function initPopulator(parent) {
-        var fns = {}, key;
-        for (key in parent) {
-            if (isFunction(parent[key])) {
-                fns[key] = rewriteFn(parent[key]);
+        var fns;
+        return function () {
+            if (fns === undefined) {
+                var key;
+                fns = {};
+                for (key in parent) {
+                    if (isFunction(parent[key])) {
+                        fns[key] = rewriteFn(parent[key]);
+                    }
+                }
             }
-        }
-        return fns;
+            return fns;
+        };
     }
 
     /**
@@ -143,13 +150,13 @@ jQuery.Class = (function () {
             // to call 'this._parent<method name>()'
             if (populate === true) {
                 populate = false;
+                fns = fns();
                 for (name in fns) {
                     if (hasOwn.call(fns, name)) {
                         // Add the parent functions
                         realParent[name] = fns[name];
                     }
                 }
-                // Remove the reference to this object from the scope.
                 fns = null;
             }
 
