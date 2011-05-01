@@ -21,7 +21,7 @@ They have been integrated with each other and improved in many ways..
 Iv'e made alot of unit testing on this that covers all the functionality, and many ways to use this.
 Everything around this is also very performance optimized.
 
-* The library comes in 3 environment releases: *
+*The library comes in 3 environment releases:*
 
  * js: Works for any browser environment
  * node.js: Designed for node.js environments
@@ -36,6 +36,9 @@ Iv'e runned the unit tests in following environments:
  * node.js versions: 0.5
 
 If you should find any problems, report a bug/make a pull-requests...
+
+The master branch is kind of work in progress, to get the lastest stable version
+look at the tag with highest version-number...
 
 Examples:
 ----------------------------
