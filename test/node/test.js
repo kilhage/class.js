@@ -1,22 +1,20 @@
-
+/*jslint node: true, strict: false */
 var assert = require('assert');
 
-var Class = require("../../node.class.js");
+global.Class = require("../../node.class.js");
 
-global.Class = Class;
-
-global.ok = function() {
+global.ok = function () {
     assert.ok.apply(assert, arguments);
-}
+};
 
 global.currentModule = "";
 
-global.test = function(name, test) {
-    console.log(global.currentModule+": "+name);
+global.test = function (name, test) {
+    console.log(global.currentModule + ": " + name);
     test();
 };
 
-global.equal = global.equals = function() {
+global.equal = global.equals = function () {
     assert.equal.apply(assert, arguments);
 };
 

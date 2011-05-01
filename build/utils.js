@@ -10,7 +10,7 @@ var date = (function () {
     return [
         d.getFullYear(),
         (d.getMonth() < 10 ? "0" : "") + d.getMonth(),
-        d.getDate()
+        (d.getDate() < 10 ? "0" : "") + d.getDate()
     ].join("-") + " " + d.toLocaleTimeString();
 }());
 
