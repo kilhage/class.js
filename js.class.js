@@ -5,7 +5,7 @@
  * Released under the MIT License
  *--------------------------------------------*
  * Environment-release: js
- * Last Update: 2011-04-02 00:21:51
+ * Last Update: 2011-04-02 01:17:39
  * Version 1.1.0
  *--------------------------------------------*/
 /*jslint forin: true, onevar: true, debug: false, indent: 4
@@ -114,23 +114,8 @@ var Class = (function () {
         return !!(fn && fn.extend === Base.extend);
     }
 
-    function rewrite(name, current_props, parent_props, fns) {
-        var current = current_props[name], 
-            parent = parent_props[name], 
-            property = current, 
-            realParent, 
-            populate;
-
-        if (isFunction(current) && 
-                // Check if we're overwriting an existing 
-                // function using a parent method
-                (isFunction(parent) || !(hasOwn.call(parent_props, name))) &&
-                // Don't rewrite classes, and only rewrite 
-                // functions that are calling a parent function
-                !is(current) && fnSearch.test(current)) {
-
-            populate = typeof fns === "object" && 
-                fns !== null && parentFnSearch.test(current);
+    function rewrite(current, parent, fns) {
+        var populate = fns !== undefined && parentFnSearch.test(current),
 
             /**
              * Needed to wrap the original function 
@@ -138,7 +123,7 @@ var Class = (function () {
              * properties to the original function 
              * when calling 'this._parent.<method name>()'
              */
-            realParent = parent !== undefined ? function () {
+            realParent = isFunction(parent) ? function () {
                 return parent.apply(this, arguments);
             } : function () {
                 // Make sure to throw an error 
@@ -146,61 +131,62 @@ var Class = (function () {
                 throw errors.logic_parent_call;
             };
 
-            property = function () {
-                var self = this, set_parent = hasOwn.call(self, "_parent"), 
-                    // store the content in the '_parent' property 
-                    // so we can revert the object after we're done
-                    tmp = self._parent, ret, name;
+        function method() {
+            var self = this, set_parent = hasOwn.call(self, "_parent"), 
+                // store the content in the '_parent' property 
+                // so we can revert the object after we're done
+                tmp = self._parent, ret, name;
 
-                // Add the parent class's methods to 
-                // 'this._parent' which enables you 
-                // to call 'this._parent<method name>()'
-                if (populate === true) {
-                    populate = false;
-                    for (name in fns) {
-                        if (hasOwn.call(fns, name)) {
-                            // Add the parent functions
-                            realParent[name] = fns[name];
-                        }
+            // Add the parent class's methods to 
+            // 'this._parent' which enables you 
+            // to call 'this._parent<method name>()'
+            if (populate === true) {
+                populate = false;
+                for (name in fns) {
+                    if (hasOwn.call(fns, name)) {
+                        // Add the parent functions
+                        realParent[name] = fns[name];
                     }
-                    // Remove the reference to this object from the scope.
-                    fns = null;
                 }
+                // Remove the reference to this object from the scope.
+                fns = null;
+            }
 
-                // Add a new ._parent() method that points to the parent 
-                // class's method with the same name
-                self._parent = realParent;
+            // Add a new ._parent() method that points to the parent 
+            // class's method with the same name
+            self._parent = realParent;
 
-                // Save a reference to the class instance on the parent
-                // function so the other methods from the 
-                // instance parent class can be called
-                self._parent[unique] = self;
+            // Save a reference to the class instance on the parent
+            // function so the other methods from the 
+            // instance parent class can be called
+            self._parent[unique] = self;
 
-                // Execute the original function
-                ret = current.apply(self, arguments);
+            // Execute the original function
+            ret = current.apply(self, arguments);
 
-                // Restore the context
-                if (set_parent === true) {
-                    self._parent = tmp;
-                } else {
-                    delete self._parent;
-                }
+            // Restore the context
+            if (set_parent === true) {
+                self._parent = tmp;
+            } else {
+                delete self._parent;
+            }
 
-                return ret;
-            };
-
-            property[unique2] = populate;
+            return ret;
         }
 
-        return property;
+        method[unique2] = populate;
+
+        return method;
     }
 
     function add(from, ref, to, fns) {
-        var name;
+        var name, current;
         to = to || ref;
         for (name in from) {
             if (hasOwn.call(from, name)) {
-                to[name] = rewrite(name, from, ref, fns);
+                current = from[name];
+                to[name] = isFunction(current) && fnSearch.test(current) ?
+                    rewrite(current, ref[name], fns) : current;
             }
         }
     }
