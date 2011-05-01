@@ -5,13 +5,13 @@
  * Released under the MIT License
  *--------------------------------------------*
  * Environment-release: jQuery
- * Last Update: 2011-03-30 18:58:06
+ * Last Update: 2011-04-1 23:28:14
  * Version 1.1.0
  *--------------------------------------------*/
 /*jslint forin: true, onevar: true, debug: false, indent: 4
    white: true, strict: true, undef: true, newcap: true
-   maxlen: 85, evil: false, browser: true
- */
+   maxlen: 85, evil: false, nomen: false, regexp: false
+   browser: true */
 /*global jQuery */
 jQuery.Class = (function () {
     "use strict";
@@ -80,8 +80,7 @@ jQuery.Class = (function () {
                 if (initializing === false && isFunction(this.init)) {
                     // Call the "real" constructor and apply the arguments
                     this.init.apply(this, args && args.callee === Awesome ? 
-                                                    args : 
-                                                    arguments);
+                                                    args : arguments);
                 }
             } else {
                 // Instantiate the class and pass the aruments
@@ -108,11 +107,6 @@ jQuery.Class = (function () {
         return fns;
     }
 
-    // Make sure to throw an error when calling a method that don't exists
-    function logic_parent_call() {
-        throw errors.logic_parent_call;
-    }
-
     /**
      * @param <mixed> fn
      * @return <boolean>: if fn is created by this library
@@ -123,7 +117,7 @@ jQuery.Class = (function () {
 
     function rewrite(name, current_props, parent_props, fns) {
         var current = current_props[name], parent = parent_props[name], 
-            realParent = logic_parent_call, populate, method;
+            realParent, populate, method;
 
         if (!(isFunction(current) && 
             // Check if we're overwriting an existing function using a parent method
@@ -136,8 +130,7 @@ jQuery.Class = (function () {
         }
 
         populate = typeof fns === "object" && 
-            fns !== null &&
-            parentFnSearch.test(current);
+            fns !== null && parentFnSearch.test(current);
 
         /**
          * Needed to wrap the original function 
@@ -145,11 +138,13 @@ jQuery.Class = (function () {
          * properties to the original function 
          * when calling 'this._parent.<method name>()'
          */
-        if (parent !== undefined) {
-            realParent = function () {
-                return parent.apply(this, arguments);
-            };
-        }
+        realParent = parent !== undefined ? function () {
+            return parent.apply(this, arguments);
+        } : function () {
+            // Make sure to throw an error 
+            // when calling a method that don't exists
+            throw errors.logic_parent_call;
+        };
 
         method = function () {
             var self = this, set_parent = hasOwn.call(self, "_parent"), 
@@ -216,7 +211,6 @@ jQuery.Class = (function () {
      * @return <function>
      */
     Base.extend = function (setStatic, prop) {
-
             // Create the new class
         var Awesome = makeClass(), name, Src = this, 
             prototype, parent = Src.prototype;
@@ -292,16 +286,15 @@ jQuery.Class = (function () {
         add(prop, this);
     };
 
+    // Public helper methods
+    Class.is = is;
+    Class.makeClass = makeClass;
+
     // The are exposed to simplify the unit-testing
     // I will probably remove them later...
     Class.fnSearch = fnSearch;
     Class.parentFnSearch = parentFnSearch;
     Class.errors = errors;
 
-    Class.is = is;
-
-    Class.makeClass = makeClass;
-
     return Class;
-
 }());

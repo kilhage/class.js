@@ -65,8 +65,7 @@
                 if (initializing === false && isFunction(this.init)) {
                     // Call the "real" constructor and apply the arguments
                     this.init.apply(this, args && args.callee === Awesome ? 
-                                                    args : 
-                                                    arguments);
+                                                    args : arguments);
                 }
             } else {
                 // Instantiate the class and pass the aruments
@@ -93,11 +92,6 @@
         return fns;
     }
 
-    // Make sure to throw an error when calling a method that don't exists
-    function logic_parent_call() {
-        throw errors.logic_parent_call;
-    }
-
     /**
      * @param <mixed> fn
      * @return <boolean>: if fn is created by this library
@@ -108,7 +102,7 @@
 
     function rewrite(name, current_props, parent_props, fns) {
         var current = current_props[name], parent = parent_props[name], 
-            realParent = logic_parent_call, populate, method;
+            realParent, populate, method;
 
         if (!(isFunction(current) && 
             // Check if we're overwriting an existing function using a parent method
@@ -121,8 +115,7 @@
         }
 
         populate = typeof fns === "object" && 
-            fns !== null &&
-            parentFnSearch.test(current);
+            fns !== null && parentFnSearch.test(current);
 
         /**
          * Needed to wrap the original function 
@@ -130,11 +123,13 @@
          * properties to the original function 
          * when calling 'this._parent.<method name>()'
          */
-        if (parent !== undefined) {
-            realParent = function () {
-                return parent.apply(this, arguments);
-            };
-        }
+        realParent = parent !== undefined ? function () {
+            return parent.apply(this, arguments);
+        } : function () {
+            // Make sure to throw an error 
+            // when calling a method that don't exists
+            throw errors.logic_parent_call;
+        };
 
         method = function () {
             var self = this, set_parent = hasOwn.call(self, "_parent"), 
@@ -201,7 +196,6 @@
      * @return <function>
      */
     Base.extend = function (setStatic, prop) {
-
             // Create the new class
         var Awesome = makeClass(), name, Src = this, 
             prototype, parent = Src.prototype;
@@ -277,16 +271,15 @@
         add(prop, this);
     };
 
+    // Public helper methods
+    Class.is = is;
+    Class.makeClass = makeClass;
+
     // The are exposed to simplify the unit-testing
     // I will probably remove them later...
     Class.fnSearch = fnSearch;
     Class.parentFnSearch = parentFnSearch;
     Class.errors = errors;
 
-    Class.is = is;
-
-    Class.makeClass = makeClass;
-
     return Class;
-
 }());

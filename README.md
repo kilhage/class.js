@@ -5,7 +5,7 @@ About
 ----------------------------
  * Copyright 2011, Emil Kilhage
  * Released under the MIT License
- * Last Updated: 2011-03-30 18:58:06
+ * Last Updated: 2011-04-1 23:28:14
  * Current version: 1.1.0
 
 This library allows you to create Class-like functions in an very effective and nice way.

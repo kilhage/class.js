@@ -11,7 +11,9 @@ var options = {
     undef: true,
     newcap: true,
     maxlen: 85,
-    evil: false
+    evil: false,
+    nomen: false,
+    regexp: false
 };
 
 function lint(content) {
@@ -52,5 +54,5 @@ module.exports.optionsAsComment = function (op) {
         o[k] = v.join(", ");
     });
     
-    return "/*jslint " + o.join("\n   ") + "\n */";
+    return "/*jslint " + o.join("\n   ") + " */";
 };
