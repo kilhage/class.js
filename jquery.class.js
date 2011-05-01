@@ -1,11 +1,11 @@
 /*--------------------------------------------*
- * https://github.com/kilhage/javascript-class
+ * Info: https://github.com/kilhage/class.js
  *--------------------------------------------*
  * Copyright 2011, Emil Kilhage
  * Released under the MIT License
  *--------------------------------------------*
  * Environment-release: jQuery
- * Last Update: 2011-04-01 23:44:15
+ * Last Update: 2011-04-02 00:13:35
  * Version 1.1.0
  *--------------------------------------------*/
 /*jslint forin: true, onevar: true, debug: false, indent: 4
@@ -116,81 +116,84 @@ jQuery.Class = (function () {
     }
 
     function rewrite(name, current_props, parent_props, fns) {
-        var current = current_props[name], parent = parent_props[name], 
-            realParent, populate, method;
+        var current = current_props[name], 
+            parent = parent_props[name], 
+            property = current, 
+            realParent, 
+            populate;
 
-        if (!(isFunction(current) && 
-            // Check if we're overwriting an existing function using a parent method
-            (isFunction(parent) || !(hasOwn.call(parent_props, name))) &&
-            // Don't rewrite classes, and only rewrite 
-            // functions that are calling a parent function
-            !is(current) && fnSearch.test(current))) {
+        if (isFunction(current) && 
+                // Check if we're overwriting an existing 
+                // function using a parent method
+                (isFunction(parent) || !(hasOwn.call(parent_props, name))) &&
+                // Don't rewrite classes, and only rewrite 
+                // functions that are calling a parent function
+                !is(current) && fnSearch.test(current)) {
 
-            return current;
+            populate = typeof fns === "object" && 
+                fns !== null && parentFnSearch.test(current);
+
+            /**
+             * Needed to wrap the original function 
+             * inside a new function to avoid adding
+             * properties to the original function 
+             * when calling 'this._parent.<method name>()'
+             */
+            realParent = parent !== undefined ? function () {
+                return parent.apply(this, arguments);
+            } : function () {
+                // Make sure to throw an error 
+                // when calling a method that don't exists
+                throw errors.logic_parent_call;
+            };
+
+            property = function () {
+                var self = this, set_parent = hasOwn.call(self, "_parent"), 
+                    // store the content in the '_parent' property 
+                    // so we can revert the object after we're done
+                    tmp = self._parent, ret, name;
+
+                // Add the parent class's methods to 
+                // 'this._parent' which enables you 
+                // to call 'this._parent<method name>()'
+                if (populate === true) {
+                    populate = false;
+                    for (name in fns) {
+                        if (hasOwn.call(fns, name)) {
+                            // Add the parent functions
+                            realParent[name] = fns[name];
+                        }
+                    }
+                    // Remove the reference to this object from the scope.
+                    fns = null;
+                }
+
+                // Add a new ._parent() method that points to the parent 
+                // class's method with the same name
+                self._parent = realParent;
+
+                // Save a reference to the class instance on the parent
+                // function so the other methods from the 
+                // instance parent class can be called
+                self._parent[unique] = self;
+
+                // Execute the original function
+                ret = current.apply(self, arguments);
+
+                // Restore the context
+                if (set_parent === true) {
+                    self._parent = tmp;
+                } else {
+                    delete self._parent;
+                }
+
+                return ret;
+            };
+
+            property[unique2] = populate;
         }
 
-        populate = typeof fns === "object" && 
-            fns !== null && parentFnSearch.test(current);
-
-        /**
-         * Needed to wrap the original function 
-         * inside a new function to avoid adding
-         * properties to the original function 
-         * when calling 'this._parent.<method name>()'
-         */
-        realParent = parent !== undefined ? function () {
-            return parent.apply(this, arguments);
-        } : function () {
-            // Make sure to throw an error 
-            // when calling a method that don't exists
-            throw errors.logic_parent_call;
-        };
-
-        method = function () {
-            var self = this, set_parent = hasOwn.call(self, "_parent"), 
-                // store the content in the '_parent' property 
-                // so we can revert the object after we're done
-                tmp = self._parent, ret, name;
-
-            // Add the parent class's methods to 'this._parent' which enables you 
-            // to call 'this._parent<method name>()'
-            if (populate === true) {
-                populate = false;
-                for (name in fns) {
-                    if (hasOwn.call(fns, name)) {
-                        // Add the parent functions
-                        realParent[name] = fns[name];
-                    }
-                }
-                // Remove the reference to this object from the scope.
-                fns = null;
-            }
-
-            // Add a new ._parent() method that points to the parent 
-            // class's method with the same name
-            self._parent = realParent;
-
-            // Save a reference to the class instance on the parent
-            // function so the other methods from the 
-            // instance parent class can be called
-            self._parent[unique] = self;
-
-            // Execute the original function
-            ret = current.apply(self, arguments);
-
-            // Restore the context
-            if (set_parent === true) {
-                self._parent = tmp;
-            } else {
-                delete self._parent;
-            }
-
-            return ret;
-        };
-
-        method[unique2] = populate;
-
-        return method;
+        return property;
     }
 
     function add(from, ref, to, fns) {
@@ -290,7 +293,7 @@ jQuery.Class = (function () {
     Class.is = is;
     Class.makeClass = makeClass;
 
-    // The are exposed to simplify the unit-testing
+    // These are exposed to simplify the unit-testing
     // I will probably remove them later...
     Class.fnSearch = fnSearch;
     Class.parentFnSearch = parentFnSearch;
