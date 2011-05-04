@@ -44,9 +44,17 @@ function extend(a, b) {
     return a;
 }
 
+function output() {
+    if (output.enabled) {
+        console.log.apply(console, arguments);
+    }
+}
+
+output.enabled = true;
+
 function save(fileName, content) {
     fs.writeFileSync(path + fileName, content);
-    console.log(fileName + ' updated!');
+    output(fileName + ' updated!');
 }
 
 function parse(c, vars) {
@@ -89,7 +97,7 @@ function minify(content, parser) {
         sizeC: compressed.length,
         diff: uncompressed.length - compressed.length,
         outputInfo: function () {
-            console.log("Size compressed: " + this.sizeC + 
+            output("Size compressed: " + this.sizeC + 
                         "b, Size uncompressed: " + this.size + 
                         "b, diff: " + this.diff + "b");
         }
@@ -101,7 +109,6 @@ function read(file) {
 }
 
 module.exports.data = data;
-module.exports.path = path;
 module.exports.date = date;
 module.exports.read = read;
 module.exports.each = each;
@@ -110,6 +117,10 @@ module.exports.save = save;
 module.exports.parse = parse;
 module.exports.minify = minify;
 module.exports.read = read;
+module.exports.output = output;
+module.exports.setOutputEnabled = function (e) {
+    output.enabled = e;
+};
 
 module.exports.version = function (v) {
     return (version = v);
@@ -119,4 +130,8 @@ module.exports.importFiles = function (files) {
     each(files, function (key, file) {
         data[key] = parse(read("src/" + file)).trim();
     });
+};
+
+module.exports.path = function (p) {
+    return path + p;
 };

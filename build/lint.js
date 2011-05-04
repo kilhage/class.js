@@ -16,15 +16,16 @@ var options = {
     regexp: false
 };
 
-function lint(content) {
+function make(content, output) {
+    content = content || u.read("src/class.js");
     var ok = JSLINT(content, options);
     
-    console.log("\njslint %spassed", !ok ? "not " : "");
+    u.output("\njslint %spassed", !ok ? "not " : "");
     
     if (!ok) {
         return JSLINT.data().errors.forEach(function (e) {
-            if (e) {
-                console.log("Error at line %s, char %s, reason: %s", 
+            if (e && output) {
+                u.output("Error at line %s, char %s, reason: %s", 
                                 e.line, e.character, e.reason);
             }
         });
@@ -33,10 +34,11 @@ function lint(content) {
     return true;
 }
 
-var l = lint(u.read("src/class.js"));
+if (process.mainModule === module) {
+    make(false, true);
+}
 
-module.exports.lint = lint;
-module.exports.result = l;
+module.exports.make = make;
 module.exports.options = options;
 module.exports.optionsAsComment = function (op) {
     var o = [[]], i = 0;

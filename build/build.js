@@ -4,7 +4,7 @@ var lint = require("./lint.js");
 
 var version = u.version("1.1.0");
 
-var types = {};
+var types;
 
 u.importFiles({
     comment: "comment",
@@ -42,7 +42,7 @@ function build(type) {
         throw "Invalid type: " + type;
     }
     
-    console.log("Enviroment: " + type + ", version: " + version);
+    u.output("Enviroment: " + type + ", version: " + version);
 
     types[type].call(u.data, u.data);
 }
@@ -66,23 +66,35 @@ types = {
     }
 };
 
-var l = lint.result;
-
-if (l === true) {
-
-    var type = process.argv[2];
-
-    if (!type) {
-        u.each(types, function (type) {
-            console.log();
-            build(type);
-        });
-    } else {
+function buildAll() {
+    u.each(types, function (type) {
+        u.output();
         build(type);
+    });
+}
+
+if (process.mainModule === module) {
+
+    var l = lint.make();
+
+    if (l === true) {
+
+        var type = process.argv[2];
+
+        if (!type) {
+            buildAll();
+        } else {
+            build(type);
+        }
+
+        u.save("README.md", u.data.readme);
+
+        console.log("\ndone !");
+
     }
 
-    u.save("README.md", u.data.readme);
-
-    console.log("\ndone !");
-
 }
+
+module.exports.build = build;
+module.exports.buildAll = buildAll;
+module.exports.types = types;
