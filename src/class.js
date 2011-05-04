@@ -172,8 +172,8 @@
         return method;
     }
 
-    function add(from, ref, to, fns) {
-        var name, current;
+    function add(from, ref, to) {
+        var name, current, fns = initPopulator(ref);
         to = to || ref;
         for (name in from) {
             if (hasOwn.call(from, name)) {
@@ -213,7 +213,7 @@
 
         if (setStatic === true ||
                 (typeof prototype === "object" && prototype !== null)) {
-            add(prop, Src, Awesome, initPopulator(Src));
+            add(prop, Src, Awesome);
             prop = prototype;
         }
 
@@ -223,7 +223,7 @@
         initializing = false;
 
         // Copy the properties over onto the new prototype
-        add(prop || {}, parent, prototype, initPopulator(parent));
+        add(prop || {}, parent, prototype);
 
         Awesome.prototype = prototype;
 

@@ -364,6 +364,10 @@ test("Inheritance", function(){
     var B = A.extend({
         init: function(){
             this._parent();
+        },
+        
+        hello: function(){
+            return true;
         }
     });
     
@@ -373,15 +377,38 @@ test("Inheritance", function(){
         }
     });
     
-    var valid = true;
+    C.addMethods({
+        hello2: function(){
+            return this._parent.hello && this._parent.hello() === true;
+        },
+        hi: function(){
+            return 1;
+        }
+    });
+    
+    valid = true;
+    
+    var i;
     
     try {
-        new C();
+        i = new C();
     } catch(e) {
         valid = false;
     }
     
     equal(valid, true);
+    
+    if (!valid) return;
+    
+    ok(i.hello2());
+    
+    i.addMethods({
+        hiThere: function(){
+            return this._parent.hi && this._parent.hi() === 1;
+        }
+    });
+    
+    ok(i.hiThere());
     
 });
 

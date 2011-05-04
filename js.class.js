@@ -5,7 +5,7 @@
  * Released under the MIT License
  *--------------------------------------------*
  * Environment-release: js
- * Last Update: 2011-04-02 01:50:12
+ * Last Update: 2011-04-04 20:33:33
  * Version 1.1.0
  *--------------------------------------------*/
 /*jslint forin: true, onevar: true, debug: false, indent: 4
@@ -268,7 +268,7 @@ var Class = (function () {
     Base.addMethods = function (prop) {
         add(prop, this.prototype);
     };
-
+    
     /**
      * A default function on all classes that are created.
      *

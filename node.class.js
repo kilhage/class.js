@@ -5,7 +5,7 @@
  * Released under the MIT License
  *--------------------------------------------*
  * Environment-release: node.js
- * Last Update: 2011-04-02 01:50:12
+ * Last Update: 2011-04-04 20:48:25
  * Version 1.1.0
  *--------------------------------------------*/
 /*jslint forin: true, onevar: true, debug: false, indent: 4
@@ -186,8 +186,8 @@ module.exports = (function () {
         return method;
     }
 
-    function add(from, ref, to, fns) {
-        var name, current;
+    function add(from, ref, to) {
+        var name, current, fns = initPopulator(ref);
         to = to || ref;
         for (name in from) {
             if (hasOwn.call(from, name)) {
@@ -227,7 +227,7 @@ module.exports = (function () {
 
         if (setStatic === true ||
                 (typeof prototype === "object" && prototype !== null)) {
-            add(prop, Src, Awesome, initPopulator(Src));
+            add(prop, Src, Awesome);
             prop = prototype;
         }
 
@@ -237,7 +237,7 @@ module.exports = (function () {
         initializing = false;
 
         // Copy the properties over onto the new prototype
-        add(prop || {}, parent, prototype, initPopulator(parent));
+        add(prop || {}, parent, prototype);
 
         Awesome.prototype = prototype;
 

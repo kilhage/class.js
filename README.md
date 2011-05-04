@@ -5,7 +5,7 @@ About
 ----------------------------
  * Copyright 2011, Emil Kilhage
  * Released under the MIT License
- * Last Updated: 2011-04-02 01:50:12
+ * Last Updated: 2011-04-04 20:48:25
  * Current version: 1.1.0
 
 This library allows you to create Class-like functions in an very effective and nice way.
@@ -36,6 +36,9 @@ Iv'e runned the unit tests in following environments:
  * node.js versions: 0.5
 
 If you should find any problems, report a bug/make a pull-requests...
+
+The master branch is kind of work in progress, to get the lastest stable version
+look at the tag with highest version-number...
 
 Examples:
 ----------------------------

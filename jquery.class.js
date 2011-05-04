@@ -5,7 +5,7 @@
  * Released under the MIT License
  *--------------------------------------------*
  * Environment-release: jQuery
- * Last Update: 2011-04-02 01:50:12
+ * Last Update: 2011-04-04 20:33:27
  * Version 1.1.0
  *--------------------------------------------*/
 /*jslint forin: true, onevar: true, debug: false, indent: 4
@@ -187,8 +187,8 @@ jQuery.Class = (function () {
         return method;
     }
 
-    function add(from, ref, to, fns) {
-        var name, current;
+    function add(from, ref, to) {
+        var name, current, fns = initPopulator(ref);
         to = to || ref;
         for (name in from) {
             if (hasOwn.call(from, name)) {
@@ -228,7 +228,7 @@ jQuery.Class = (function () {
 
         if (setStatic === true ||
                 (typeof prototype === "object" && prototype !== null)) {
-            add(prop, Src, Awesome, initPopulator(Src));
+            add(prop, Src, Awesome);
             prop = prototype;
         }
 
@@ -238,7 +238,7 @@ jQuery.Class = (function () {
         initializing = false;
 
         // Copy the properties over onto the new prototype
-        add(prop || {}, parent, prototype, initPopulator(parent));
+        add(prop || {}, parent, prototype);
 
         Awesome.prototype = prototype;
 

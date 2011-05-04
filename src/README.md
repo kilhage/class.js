@@ -37,6 +37,9 @@ Iv'e runned the unit tests in following environments:
 
 If you should find any problems, report a bug/make a pull-requests...
 
+The master branch is kind of work in progress, to get the lastest stable version
+look at the tag with highest version-number...
+
 Examples:
 ----------------------------
 
