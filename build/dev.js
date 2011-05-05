@@ -9,8 +9,6 @@ if (!b.types.hasOwnProperty(type)) {
     throw "invalid type: " + type;
 }
 
-u.setOutputEnabled(false);
-
 var file = type + ".class.js";
 
 console.log("watching: " + file + "...\n");

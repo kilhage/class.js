@@ -1,41 +1,51 @@
 /*jslint node: true, strict: false */
-var JSLINT = require("./lib/jslint.js");
-var u = require("./utils.js");
-var options = {
-    forin: true,
-    onevar: true,
-    debug: false,
-    indent: 4,
-    white: true,
-    strict: true,
-    undef: true,
-    newcap: true,
-    maxlen: 85,
-    evil: false,
-    nomen: false,
-    regexp: false
-};
+var JSLINT = require("./lib/jslint.js"),
+    u = require("./utils.js"),
+    options = {
+        forin: true,
+        onevar: true,
+        debug: false,
+        indent: 4,
+        white: true,
+        strict: true,
+        undef: true,
+        newcap: true,
+        maxlen: 85,
+        evil: false,
+        nomen: false,
+        regexp: false
+    },
+    valid_reasons = {
+        "Expected an identifier and instead saw 'undefined' (a reserved word).": true
+    };
 
-function make(content, output) {
+function make(content) {
     content = content || u.read("src/class.js");
-    var ok = JSLINT(content, options);
+    JSLINT(content, options);
+    
+    var errors = [], ok;
+    
+    JSLINT.data().errors.forEach(function (e) {
+        if (e && !valid_reasons[e.reason]) {
+            e.message = "Error at line " + e.line + ", char " +
+                e.character + ", reason: " + e.reason;
+
+            errors.push(e);
+        }
+    });
+    
+    ok = errors.length === 0;
     
     u.output("\njslint %spassed", !ok ? "not " : "");
+    errors.forEach(function (e) {
+        u.output(e.message);
+    });
     
-    if (!ok) {
-        return JSLINT.data().errors.forEach(function (e) {
-            if (e && output) {
-                u.output("Error at line %s, char %s, reason: %s", 
-                                e.line, e.character, e.reason);
-            }
-        });
-    }
-    
-    return true;
+    return !ok ? errors : true;
 }
 
 if (process.mainModule === module) {
-    make(false, true);
+    make();
 }
 
 module.exports.make = make;
