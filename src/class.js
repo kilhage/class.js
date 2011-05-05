@@ -18,7 +18,6 @@
         hasOwn = Object.prototype.hasOwnProperty,
 
         functionToString = toString.call(testFn),
-        baseTmpl,
 
         errors = {
             logic_parent_call: prefix + ":Logic error, unable to call the parent " + 
@@ -48,8 +47,7 @@
      * @return <boolean>: if fn is created by this library
      */
     function is(fn) {
-        return toString.call(fn) === functionToString && 
-            Base.prototype.isPrototypeOf(baseTmpl);
+        return !!(fn && fn.extend === Base.extend);
     }
 
     /**
@@ -274,8 +272,6 @@
     Base.prototype.addMethods = function (properties) {
         addProperties(properties, this);
     };
-    
-    baseTmpl = new Base();
 
     // Public helper methods
     Class.is = is;

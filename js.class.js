@@ -5,7 +5,7 @@
  * Released under the MIT License
  *--------------------------------------------*
  * Environment-release: js
- * Last Update: 2011-04-05 02:05:50
+ * Last Update: 2011-04-05 02:15:10
  * Version 1.1.0
  *--------------------------------------------*/
 /*jslint forin: true, onevar: true, debug: false, indent: 4
@@ -32,7 +32,6 @@ var Class = (function (undefined) {
         hasOwn = Object.prototype.hasOwnProperty,
 
         functionToString = toString.call(testFn),
-        baseTmpl,
 
         errors = {
             logic_parent_call: prefix + ":Logic error, unable to call the parent " + 
@@ -62,8 +61,7 @@ var Class = (function (undefined) {
      * @return <boolean>: if fn is created by this library
      */
     function is(fn) {
-        return toString.call(fn) === functionToString && 
-            Base.prototype.isPrototypeOf(baseTmpl);
+        return !!(fn && fn.extend === Base.extend);
     }
 
     /**
@@ -288,8 +286,6 @@ var Class = (function (undefined) {
     Base.prototype.addMethods = function (properties) {
         addProperties(properties, this);
     };
-    
-    baseTmpl = new Base();
 
     // Public helper methods
     Class.is = is;

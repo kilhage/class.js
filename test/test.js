@@ -877,9 +877,10 @@ test("Class.is", function () {
         "int": 1,
         "float": 2.4,
         "regexps": /ccds/,
+        "function": function(){},
         "string": "hyjukl"
         }, function(type, p){
-        ok(!Class.is(p), type + "is not a class");
+        ok(!Class.is(p), type + " is not a class");
     });
     
 });
