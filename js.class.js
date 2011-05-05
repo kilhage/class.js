@@ -5,40 +5,39 @@
  * Released under the MIT License
  *--------------------------------------------*
  * Environment-release: js
- * Last Update: 2011-04-04 20:33:33
+ * Last Update: 2011-04-05 02:05:50
  * Version 1.1.0
  *--------------------------------------------*/
 /*jslint forin: true, onevar: true, debug: false, indent: 4
    white: true, strict: true, undef: true, newcap: true
    maxlen: 85, evil: false, nomen: false, regexp: false
    browser: true */
-var Class = (function () {
+var Class = (function (undefined) {
     "use strict";
 
     var initializing = false,
         prefix = "Class",
 
-        unique = prefix + (new Date()).getTime(),
-        unique2 = unique + 1,
+        __self__ = prefix + (new Date()).getTime(),
+        
+        testFn = function () {
+            this._parent();
+        },
 
-        fnSearchable = /\b_parent\b/.test(function () { this._parent(); }),
+        fnSearchable = /\b_parent\b/.test(testFn),
         fnSearch = fnSearchable ? (/\b_parent\b/) : /.*/,
         parentFnSearch = fnSearchable ? (/\b_parent\b\./) : /.*/,
-
-        test = RegExp.prototype.test,
+        
         toString = Object.prototype.toString,
         hasOwn = Object.prototype.hasOwnProperty,
+
+        functionToString = toString.call(testFn),
+        baseTmpl,
 
         errors = {
             logic_parent_call: prefix + ":Logic error, unable to call the parent " + 
                                         "function since it isn't defined.."
         };
-
-    // Needed to rewrite the behaviour 
-    // of this regexp's test method to work properly
-    parentFnSearch.test = function (fn) {
-        return test.call(parentFnSearch, fn) || fn[unique2] === true;
-    };
 
     /**
      * The base Class implementation that all 
@@ -54,12 +53,17 @@ var Class = (function () {
      * @param <object> prop: The prototype that you want the object to have
      * @return <function>: Created class
      */
-    function Class(setStatic, prop) {
-        return Base.extend(setStatic, prop);
+    function Class(setStatic, properties) {
+        return Base.extend(setStatic, properties);
     }
 
-    function isFunction(fn) {
-        return toString.call(fn) === "[object Function]";
+    /**
+     * @param <mixed> fn
+     * @return <boolean>: if fn is created by this library
+     */
+    function is(fn) {
+        return toString.call(fn) === functionToString && 
+            Base.prototype.isPrototypeOf(baseTmpl);
     }
 
     /**
@@ -75,11 +79,13 @@ var Class = (function () {
      */
     function makeClass() {
         function Awesome(args) {
-            if (this instanceof Awesome) {
+            var self = this;
+            if (self instanceof Awesome) {
                 // If not executing the "extend" function and an init method exist
-                if (initializing === false && isFunction(this.init)) {
+                if (initializing === false && 
+                        toString.call(self.init) === functionToString) {
                     // Call the "real" constructor and apply the arguments
-                    this.init.apply(this, args && args.callee === Awesome ? 
+                    self.init.apply(self, args && args.callee === Awesome ? 
                                                     args : arguments);
                 }
             } else {
@@ -91,72 +97,53 @@ var Class = (function () {
         return Awesome;
     }
 
-    function rewriteFn(fn) {
-        return function () {
-            return fn.apply(this[unique], arguments);
-        };
-    }
+    function rewrite(current, parent, populator) {
+            // Should this._parent be 
+            // populated with any properties 
+            // from the parent class?
+        var populate = parentFnSearch.test(current),
 
-    function initPopulator(parent) {
-        var fns;
-        return function () {
-            if (fns === undefined) {
-                var key;
-                fns = {};
-                for (key in parent) {
-                    if (isFunction(parent[key])) {
-                        fns[key] = rewriteFn(parent[key]);
-                    }
-                }
-            }
-            return fns;
-        };
-    }
-
-    /**
-     * @param <mixed> fn
-     * @return <boolean>: if fn is created by this library
-     */
-    function is(fn) {
-        return !!(fn && fn.extend === Base.extend);
-    }
-
-    function rewrite(current, parent, fns) {
-        var populate = fns !== undefined && parentFnSearch.test(current),
-
-            /**
-             * Needed to wrap the original function 
-             * inside a new function to avoid adding
-             * properties to the original function 
-             * when calling 'this._parent.<method name>()'
-             */
-            realParent = isFunction(parent) ? function () {
+             // Needed to wrap the original function 
+             // inside a new function to avoid adding
+             // properties to the original function 
+             // when calling 'this._parent.<method name>()'
+            realParent = toString.call(parent) === functionToString ? function () {
                 return parent.apply(this, arguments);
-            } : function () {
-                // Make sure to throw an error 
+            } : // Make sure to throw an error 
                 // when calling a method that don't exists
-                throw errors.logic_parent_call;
-            };
+                function () {
+                    throw errors.logic_parent_call;
+                };
 
-        function method() {
-            var self = this, set_parent = hasOwn.call(self, "_parent"), 
-                // store the content in the '_parent' property 
-                // so we can revert the object after we're done
-                tmp = self._parent, ret, name;
+        return function () {
+            var self = this,
+                // Are the current context storing a 
+                // property called ._parent
+                // That we need to revert after the 
+                // current function has been executed?
+                has_parent = hasOwn.call(self, "_parent"), 
+                // Store the content in the ._parent property 
+                // so we can revert the object after 
+                // we're done if it's needed
+                tmp = self._parent, 
+                ret, 
+                name,
+                fns;
 
             // Add the parent class's methods to 
             // 'this._parent' which enables you 
             // to call 'this._parent<method name>()'
             if (populate === true) {
+                // We only need to do this once
                 populate = false;
-                fns = fns();
+                // Get the parent functions and add'em
+                fns = populator();
                 for (name in fns) {
                     if (hasOwn.call(fns, name)) {
                         // Add the parent functions
                         realParent[name] = fns[name];
                     }
                 }
-                fns = null;
             }
 
             // Add a new ._parent() method that points to the parent 
@@ -166,34 +153,53 @@ var Class = (function () {
             // Save a reference to the class instance on the parent
             // function so the other methods from the 
             // instance parent class can be called
-            self._parent[unique] = self;
+            self._parent[__self__] = self;
 
             // Execute the original function
             ret = current.apply(self, arguments);
 
             // Restore the context
-            if (set_parent === true) {
+            if (has_parent === true) {
                 self._parent = tmp;
             } else {
                 delete self._parent;
             }
 
             return ret;
-        }
-
-        method[unique2] = populate;
-
-        return method;
+        };
     }
 
-    function add(from, ref, to, fns) {
-        var name, current;
-        to = to || ref;
+    function rewriteFn(fn) {
+        return function () {
+            return fn.apply(this[__self__], arguments);
+        };
+    }
+
+    function addProperties(from, reference, target) {
+        var name, current, fns,
+            populator = function () {
+                if (fns === undefined) {
+                    var key;
+                    fns = {};
+                    for (key in reference) {
+                        if (toString.call(reference[key]) === functionToString) {
+                            fns[key] = rewriteFn(reference[key]);
+                        }
+                    }
+                }
+                return fns;
+            };
+
+        if (target === undefined) {
+            target = reference;
+        }
+
         for (name in from) {
             if (hasOwn.call(from, name)) {
                 current = from[name];
-                to[name] = isFunction(current) && fnSearch.test(current) ?
-                    rewrite(current, ref[name], fns) : current;
+                target[name] = toString.call(current) === functionToString && 
+                    fnSearch.test(current) ?
+                    rewrite(current, reference[name], populator) : current;
             }
         }
     }
@@ -202,21 +208,22 @@ var Class = (function () {
      * Creates a new class based on the current class
      * 
      * @param setStatic
-     * @param prop
+     * @param properties
      * @return <function>
      */
-    Base.extend = function (setStatic, prop) {
+    Base.extend = function (setStatic, properties) {
             // Create the new class
         var Awesome = makeClass(), name, Src = this, 
             prototype, parent = Src.prototype;
 
         if (typeof setStatic !== "boolean") {
-            prop = setStatic;
+            properties = setStatic;
         }
 
-        prop = typeof prop === "object" && prop !== null ? prop : {};
+        properties = typeof properties === "object" && properties !== null ?
+            properties : {};
 
-        prototype = prop.prototype;
+        prototype = properties.prototype;
 
         // Move all static properties
         for (name in Src) {
@@ -227,8 +234,8 @@ var Class = (function () {
 
         if (setStatic === true ||
                 (typeof prototype === "object" && prototype !== null)) {
-            add(prop, Src, Awesome, initPopulator(Src));
-            prop = prototype;
+            addProperties(properties, Src, Awesome);
+            properties = prototype;
         }
 
         // Create a shallow copy of the source prototype
@@ -237,12 +244,13 @@ var Class = (function () {
         initializing = false;
 
         // Copy the properties over onto the new prototype
-        add(prop || {}, parent, prototype, initPopulator(parent));
-
-        Awesome.prototype = prototype;
+        addProperties(properties || {}, parent, prototype);
 
         // Enforce the constructor to be what we expect
         Awesome.constructor = prototype.constructor = Awesome;
+
+        // Add the final prototype to the created class
+        Awesome.prototype = prototype;
 
         /**
          * Checks if a class inherits from another class
@@ -265,21 +273,23 @@ var Class = (function () {
      * Adds properties to a Class prototype
      * @param <object> prop
      */
-    Base.addMethods = function (prop) {
-        add(prop, this.prototype);
+    Base.addMethods = function (properties) {
+        addProperties(properties, this.prototype);
     };
-    
+
     /**
      * A default function on all classes that are created.
      *
      * Makes in possible to extend already initalized
      * objects in an easy way
      * 
-     * @param <object> prop
+     * @param <object> properties
      */
-    Base.prototype.addMethods = function (prop) {
-        add(prop, this);
+    Base.prototype.addMethods = function (properties) {
+        addProperties(properties, this);
     };
+    
+    baseTmpl = new Base();
 
     // Public helper methods
     Class.is = is;

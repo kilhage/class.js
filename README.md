@@ -5,7 +5,7 @@ About
 ----------------------------
  * Copyright 2011, Emil Kilhage
  * Released under the MIT License
- * Last Updated: 2011-04-04 20:48:25
+ * Last Updated: 2011-04-05 02:05:50
  * Current version: 1.1.0
 
 This library allows you to create Class-like functions in an very effective and nice way.
@@ -21,7 +21,7 @@ They have been integrated with each other and improved in many ways..
 Iv'e made alot of unit testing on this that covers all the functionality, and many ways to use this.
 Everything around this is also very performance optimized.
 
-*The library comes in 3 environment releases:*
+__The library comes in 3 environment releases:__
 
  * js: Works for any browser environment
  * node.js: Designed for node.js environments

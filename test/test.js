@@ -592,6 +592,28 @@ test("Instance", function(){
 
 testModule("Internal");
 
+test("Only rewrite functions when it's needed", function(){
+    
+    var A = Class({
+        fn: function(){}
+    })
+    
+    var B = A.extend({
+        fn: function(){
+            this._parent();
+        },
+        fn2: function(){
+            this._parent.fn();
+        }
+    });
+    
+    var C = B.extend({});
+    
+    ok(B.prototype.fn === C.prototype.fn);
+    ok(B.prototype.fn2 === C.prototype.fn2);
+    
+});
+
 test("Errors", function(){
     var check = function(name, fn, message){
         var check = false;
@@ -620,50 +642,38 @@ test("Errors", function(){
 
 test("Helpers", function(){
    
-   var Cl = Class({
-       
-       init: function(){
-           
-       }
-       
-   });
-   
-   var Cl2 = Cl.extend({
-       
-       init: function(){
+   each([
+       function(){
            this._parent();
-       },
-       
-       test: function(){
+       }
+   ], function(i, fn){
+       ok(Class.fnSearch.test(fn), "Identify if a function calls a parent function?");
+   });
+   
+   each([
+       function(){
            this._parent.fn();
+       }
+   ], function(i, fn){
+       ok(Class.parentFnSearch.test(fn), "Identify if a function calls a parent.fn function?");
+   });
+   
+   each([
+       function(){
+           this.hej();
        },
-       
-       fn: function(){
-           
+       function(){
+           this._parents();
+       },
+       function(){
+           this_parent();
        }
-       
+   ], function(i, fn){
+       ok(!Class.fnSearch.test(fn), "Identify if a function don't calls a parent function");
+       ok(!Class.fnSearch.test(fn), "Identify if a function don't calls a parent function");
    });
    
-   each([1, "hej", null, undefined, [], {}, true, false], function(_, test_value) {
-       try {
-           ok(! Class.is(test_value));
-       } catch(e) {
-           log(e);
-           ok(false);
-       }
-   });
-   
-   ok(Class.is(Cl), "Can Class.is identify classes created by the plugin?");
-
-   ok( ! Class.is(function(){}), "Can Class.is identify classes not created by the plugin?");
-  
-   ok(Class.parentFnSearch.test(Cl2.prototype.test), "Can the plugin identify if a function calls a parent function");
-   ok(Class.fnSearch.test(Cl2.prototype.init), "Can the plugin identify if a function calls a parent function");
-  
-   ok( ! Class.fnSearch.test(Cl2.prototype.fn), "Can the plugin identify if a function don't calls a parent function");
-   ok( ! Class.parentFnSearch.test(Cl2.prototype.init), "Can the plugin identify if a function don't calls a parent function");
-    
-   Cl = Class({
+   var Cl = Class({
         
         init: function() {
             
@@ -675,7 +685,7 @@ test("Helpers", function(){
         
     });
     
-    Cl2 = Cl.extend({
+    var Cl2 = Cl.extend({
         
         init: function(){
             this._parent();
@@ -848,7 +858,33 @@ test("Unwanted properties", function() {
 
 testModule("Features");
 
-test("Constructor.inherits", function() {
+test("Class.is", function () {
+    
+    var A = Class({});
+    var B = A.extend({});
+    
+    each([A, B], function(i, fn){
+        ok(Class.is(fn, "is a valid class"));
+    });
+    
+    each({
+        "null": null,
+        "undefined": undefined,
+        "false": false,
+        "true": true,
+        "array": [],
+        "plain object": {},
+        "int": 1,
+        "float": 2.4,
+        "regexps": /ccds/,
+        "string": "hyjukl"
+        }, function(type, p){
+        ok(!Class.is(p), type + "is not a class");
+    });
+    
+});
+
+test("constructor.inherits", function() {
     
     var Cl = Class({});
     
@@ -862,19 +898,19 @@ test("Constructor.inherits", function() {
     ok( ! Cl.inherits(Ext) );
     
     try {
-    
-        each([
-            null,
-            undefined,
-            false,
-            true,
-            [],
-            {},
-            1,
-            /ccds/,
-            "hyjukl"
-        ], function(i, v){
-            ok( ! Ext2.inherits(v) );
+        each({
+            "null": null,
+            "undefined": undefined,
+            "false": false,
+            "true": true,
+            "array": [],
+            "plain object": {},
+            "int": 1,
+            "float": 2.4,
+            "regexps": /ccds/,
+            "string": "hyjukl"
+        }, function(type, v){
+            ok( ! Ext2.inherits(v), type + " does not inherits from Ext2");
         });
         
     } catch(e) {
