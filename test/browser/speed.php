@@ -63,7 +63,7 @@ test("Building 20.000 static classes", 10000, function(t){
     }
 });
 
-test("Initalizing 100.000 objects using with the new keyword", 100000, function(t){
+test("Initalizing 100.000 objects using with the new keyword with a constructor", 100000, function(t){
     var b, a = $.Class({
         init: function(){}
     });
@@ -72,9 +72,26 @@ test("Initalizing 100.000 objects using with the new keyword", 100000, function(
     }
 });
 
-test("Initalizing 100.000 objects using without the new keyword", 100000, function(t){
+test("Initalizing 100.000 objects using without the new keyword with a constructor", 100000, function(t){
     var b, a = $.Class({
         init: function(){}
+    });
+    while(t--) {
+        b = a();
+    }
+
+});
+
+test("Initalizing 100.000 objects using with the new keyword without a constructor", 100000, function(t){
+    var b, a = $.Class({
+    });
+    while(t--) {
+        b = new a();
+    }
+});
+
+test("Initalizing 100.000 objects using without the new keyword without a constructor", 100000, function(t){
+    var b, a = $.Class({
     });
     while(t--) {
         b = a();
