@@ -58,13 +58,6 @@ function type( obj ) {
         class2type[ toString.call(obj) ] || "object";
 };
 
-function log(m){
-    if ( typeof console === "object" && typeof console.log === "function" ) {
-        console.log.apply(console, arguments);
-    }
-    return m;
-};
-
 function testModule(name) {
     if ( isFunction(module) ) {
         module(name);
@@ -163,43 +156,11 @@ test("Basic", function(){
     try {
         check = c.name === b.name && b.name === val;
     } catch(e) {
-        log(e.message);
+        console.log(e.message);
         check = false;
     }
     
     ok(check, "Are the behavior of initalizing a class with/without the new keyword the same?");
-    
-    check = true;
-    try {
-        var C = Class();
-        var t = new C();
-        
-        C = Class(true);
-        t = new C;
-        
-        C = Class({});
-        t = new C();
-        
-        C = Class(true, {});
-        t = new C();
-        
-        C = Class();
-        t = C();
-        
-        C = Class(true);
-        t = C;
-        
-        C = Class({});
-        t = C();
-        
-        C = Class(true, {});
-        t = C();
-    } catch(e) {
-        log(e.message);
-        check = false;
-    }
-    
-    ok(check, "Is it possible to create an empty class?");
     
 });
 
@@ -317,7 +278,7 @@ test("Inheritance", function(){
         c = new Cls[t+1]();
         y = c.fn() == b && c.fn2() == b && Cls[t+1].fn() == b && Cls[t+1].fn2() == b;
     } catch(e) {
-        log(e);
+        console.log(e);
         y = false;
     }
     
@@ -414,7 +375,7 @@ test("Inheritance", function(){
 
 test("Static", function(){
     
-    var Cl = Class(true, {
+    var Cl = Class({
         
         staticFn: function(val) {
             this.prop = val;
@@ -434,7 +395,7 @@ test("Static", function(){
         
     });
     
-    var Cl2 = Cl.extend(true, {
+    var Cl2 = Cl.extend({
         
         value: "value",
         
@@ -510,6 +471,31 @@ test("Static", function(){
     
     equals(c.foo, Cl2.prototype.prop);
     
+    var props = {
+        staticFn: function () {
+            return this._parent() + "2";
+        },
+
+        prototype: {
+            fn: function () {
+                return 1;
+            }
+        }
+    };
+    
+    var proto = props.prototype;
+    
+    Cl2.addMethods(props);
+    
+    equal(Cl2.staticFn(), "value2");
+    
+    c = new Cl2();
+    
+    ok(isFunction(c.fn) && c.fn() === 1);
+    
+    equal(c.foo, "prop");
+    
+    equal(props.prototype, proto);
 });
 
 test("Instance", function(){
@@ -614,18 +600,23 @@ test("Only rewrite functions when it's needed", function(){
     
 });
 
-test("Errors", function(){
+test("Error Handling", function(){
     var check = function(name, fn, message){
-        var check = false;
+        var check = false, _e;
         try {
              fn();
         } catch(e) {
-            check = e == Class.errors[name];
+            check = e instanceof Class.errors[name];
+            _e = e;
+            if (!check)
+                throw e;
         }
+        if (_e)
+            message += ", message: " + _e.message;
         ok(check, message);
     };
     
-    check("logic_parent_call", function(){
+    check("InvalidParentMethodCall", function(){
         var Cl = Class({
             callToUndefined: function(){
                 this._parent();
@@ -636,7 +627,55 @@ test("Errors", function(){
         
         c.callToUndefined();
         
-    }, "Does a function call to a parent method that don't exist in the parent class thows an error?");
+    }, "Does a function call to a parent method that don't exist in the parent class thows an InvalidParentMethodCall error");
+    
+    var er = " throws an InvalidClassDefinition error";
+    
+    var props = {
+        "true": true,
+        "false": false,
+        "null": null,
+        "undefined": undefined,
+        "''": '',
+        "[]": [],
+        "NaN": NaN,
+        "/_parent/": /_parent/,
+        "1": 1,
+        "1.4": 1.4,
+        "function(){}": function(){},
+        "Class({})": Class({}),
+        "window": window,
+        "document": document,
+        "<div />": document.createElement("div")
+    };
+    
+    check("InvalidClassDefinition", function(){
+        Class();
+    }, "Class(); " + er);
+    
+    each(props, function (lbl, prop) {
+        check("InvalidClassDefinition", function(){
+            Class(prop);
+        }, "Class(" + lbl + "); " + er);
+    });
+    
+    var A = Class({});
+    
+    each(["extend", "addMethods"], function (i, method) {
+        each(props, function (lbl, prop) {
+            check("InvalidClassDefinition", function(){
+                A[method](prop);
+            }, "A." + method + "(" + lbl + "); " + er);
+        });
+    });
+    
+    var instance = new A();
+    
+    each(props, function (lbl, prop) {
+        check("InvalidClassDefinition", function(){
+            instance.addMethods(prop);
+        }, "instance.addMethods(" + lbl + "); " + er);
+    });
     
 });
 
@@ -670,7 +709,6 @@ test("Helpers", function(){
        }
    ], function(i, fn){
        ok(!Class.fnSearch.test(fn), "Identify if a function don't calls a parent function");
-       ok(!Class.fnSearch.test(fn), "Identify if a function don't calls a parent function");
    });
    
    var Cl = Class({
@@ -680,7 +718,7 @@ test("Helpers", function(){
         },
         
         fn: function(){
-            
+            return 1;
         }
         
     });
@@ -692,7 +730,7 @@ test("Helpers", function(){
         },
         
         fn: function(){
-            this._parent();
+            return this._parent();
         }
         
     });
@@ -703,60 +741,44 @@ test("Helpers", function(){
     
     c._parent = true;
     
-    c.fn();
+    equals(c.fn(), 1);
     
-    ok(c._parent, "Is the '_parent' property properly maintained in the instance when it exists after a this._parent function call?")
+    ok(c._parent, "Is the '_parent' property properly maintained in the instance when it exists after a this._parent function call?");
+    
+    Cl2.prototype._parent = true;
+    
+    c = new Cl2();
+    
+    equals(c._parent, true);
+    
+    equals(c.fn(), 1);
+    
+    equals(c._parent, true);
    
 });
 
 test("Evil", function(){
-   
-   var Cl, t, check = true,
-   tests = {
-       "true": true,
-       "false": false,
-       "null": null,
-       "undefined": undefined,
-       "\"\"": "",
-       "[]": [],
-       "NaN": NaN,
-       "RegExp": /_parent/
-   };
-   
-   each(tests, function( i, v ) {
-       var b = 2, args, nargs, c, m;
-       while(b--) {
-           check = true;
-           m = "Class( ";
-           try {
-               args = [];
-               nargs = [];
-               for(c = 0; c <= b; c++) {
-                   args.push(v);
-                   nargs.push(i);
-               }
-               m += nargs.join(", ")+" )";
-               Cl = Class.apply(Class, args);
-               t = new Cl();
-           } catch(e) {
-               check = false;
-               m += " :: error: "+ e.message;
-               log(m);
-           }
-           ok(check, m);
-       }
-   });
     
-    Cl = Class({
+    var Cl = Class({
         
         init: function(){}
         
     });
     
-    var valid = true;
+    var valid = true, instance;
     
     try {
-        var instance = new Cl(null);
+        instance = new Cl(null);
+    } catch(e) {
+        valid = false;
+    }
+    
+    ok(valid);
+    
+    valid = true;
+    
+    try {
+        instance = new Cl(null);
     } catch(e) {
         valid = false;
     }
@@ -791,7 +813,7 @@ test("RegExp's of pure evil", function() {
         var instance = new Cl();
     } catch(e) {
         valid = false;
-        log(e);
+        console.log(e);
         
     }
     

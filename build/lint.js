@@ -16,7 +16,8 @@ var JSLINT = require("./lib/jslint.js"),
         regexp: false
     },
     valid_reasons = {
-        "Expected an identifier and instead saw 'undefined' (a reserved word).": true
+        "Expected an identifier and instead saw 'undefined' (a reserved word).": true,
+        "Unexpected 'in'. Compare with undefined, or use the hasOwnProperty method instead.": true
     };
 
 function make(content) {

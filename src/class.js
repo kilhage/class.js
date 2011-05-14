@@ -10,19 +10,45 @@
             this._parent();
         },
 
-        fnSearchable = /\b_parent\b/.test(testFn),
-        fnSearch = fnSearchable ? (/\b_parent\b/) : /.*/,
-        parentFnSearch = fnSearchable ? (/\b_parent\b\./) : /.*/,
+        fnSearch = /\b_parent\b/,
+        fnSearchable = fnSearch.test(testFn),
+        parentFnSearch = fnSearchable ? (/\b_parent\b\./) : fnSearch = /.*/,
         
         toString = Object.prototype.toString,
         hasOwn = Object.prototype.hasOwnProperty,
 
         functionToString = toString.call(testFn),
+        objectToString = toString.call({}),
+        StdError = Error,
+        
+        tmpProto,
 
-        errors = {
-            logic_parent_call: prefix + ":Logic error, unable to call the parent " + 
-                                        "function since it isn't defined.."
-        };
+        errors = {};
+
+    /* Define some used Errors */
+
+    /**
+     * This is thrown whenever the input in any of the class building
+     * functions conatins something wiered.
+     */
+    function InvalidClassDefinition(msg) {
+        StdError.apply(this, arguments);
+        this.message = prefix + "::Unable to " + msg;
+    }
+
+    tmpProto = InvalidClassDefinition.prototype = new StdError();
+    errors[tmpProto.name = "InvalidClassDefinition"] = InvalidClassDefinition;
+
+    /**
+     * Gets thrown when someone calls a parent method that don't exists
+     */
+    function InvalidParentMethodCall(name) {
+        StdError.apply(this, arguments);
+        this.message = prefix + "::Parent Class doesn't have the method: " + name;
+    }
+
+    tmpProto = InvalidParentMethodCall.prototype = new StdError();
+    errors[tmpProto.name = "InvalidParentMethodCall"] = InvalidParentMethodCall;
 
     /**
      * The base Class implementation that all 
@@ -62,15 +88,32 @@
      * @return <function>
      */
     function makeClass() {
+        // The constructor will be cached 
+        // here and updated each time it changes
+        var init;
         function Awesome(args) {
             var self = this;
+            // Where the new keyword used?
             if (self instanceof Awesome) {
-                // If not executing the "extend" function and an init method exist
-                if (initializing === false && 
-                        toString.call(self.init) === functionToString) {
-                    // Call the "real" constructor and apply the arguments
-                    self.init.apply(self, args && args.callee === Awesome ? 
-                                                    args : arguments);
+                if (initializing === false) {
+                    // Have the constructor property changed since
+                    // last time a new instance where made?
+                    if (init !== self.init) {
+                        // Is the constructor property a function?
+                        if ("init" in self &&
+                                toString.call(self.init) === functionToString) {
+                            // Update the cached constructor.
+                            init = self.init;
+                        } else {
+                            // The not a valid constructor.
+                            init = undefined;
+                        }
+                    }
+                    if (init !== undefined) {
+                        // Call the "real" constructor and apply the arguments
+                        init.apply(self, args && args.callee === Awesome ? 
+                                                        args : arguments);
+                    }
                 }
             } else {
                 // Instantiate the class and pass the aruments
@@ -81,7 +124,7 @@
         return Awesome;
     }
 
-    function rewrite(current, parent, populator) {
+    function rewrite(name, current, parent, populator) {
             // Should this._parent be 
             // populated with any properties 
             // from the parent class?
@@ -96,7 +139,7 @@
             } : // Make sure to throw an error 
                 // when calling a method that don't exists
                 function () {
-                    throw errors.logic_parent_call;
+                    throw new InvalidParentMethodCall(name);
                 };
 
         return function () {
@@ -105,12 +148,12 @@
                 // property called ._parent
                 // That we need to revert after the 
                 // current function has been executed?
-                has_parent = hasOwn.call(self, "_parent"), 
+                has_parent = self.hasOwnProperty("_parent"),
                 // Store the content in the ._parent property 
                 // so we can revert the object after 
                 // we're done if it's needed
-                tmp = self._parent, 
-                ret, 
+                tmp = self._parent,
+                ret,
                 name,
                 fns;
 
@@ -183,7 +226,7 @@
                 current = from[name];
                 target[name] = toString.call(current) === functionToString && 
                     fnSearch.test(current) ?
-                    rewrite(current, reference[name], populator) : current;
+                    rewrite(name, current, reference[name], populator) : current;
             }
         }
     }
@@ -191,23 +234,18 @@
     /**
      * Creates a new class based on the current class
      * 
-     * @param setStatic
      * @param properties
      * @return <function>
      */
-    Base.extend = function (setStatic, properties) {
+    Base.extend = function (properties) {
             // Create the new class
         var Awesome = makeClass(), name, Src = this, 
             prototype, parent = Src.prototype;
-
-        if (typeof setStatic !== "boolean") {
-            properties = setStatic;
+            
+        if (toString.call(properties) !== objectToString) {
+            throw new InvalidClassDefinition((Src === Base ? "extend" : "create") + 
+                " class");
         }
-
-        properties = typeof properties === "object" && properties !== null ?
-            properties : {};
-
-        prototype = properties.prototype;
 
         // Move all static properties
         for (name in Src) {
@@ -215,11 +253,14 @@
                 Awesome[name] = Src[name];
             }
         }
-
-        if (setStatic === true ||
-                (typeof prototype === "object" && prototype !== null)) {
+        
+        /**
+         * Does the input contains any static properties that should be added?
+         */
+        if (toString.call(prototype = properties.prototype) === objectToString) {
+            delete properties.prototype;
             addProperties(properties, Src, Awesome);
-            properties = prototype;
+            properties.prototype = properties = prototype;
         }
 
         // Create a shallow copy of the source prototype
@@ -228,7 +269,7 @@
         initializing = false;
 
         // Copy the properties over onto the new prototype
-        addProperties(properties || {}, parent, prototype);
+        addProperties(properties, parent, prototype);
 
         // Enforce the constructor to be what we expect
         Awesome.constructor = prototype.constructor = Awesome;
@@ -254,11 +295,27 @@
     };
 
     /**
-     * Adds properties to a Class prototype
+     * Adds properties to a Class
      * @param <object> prop
      */
-    Base.addMethods = function (properties) {
-        addProperties(properties, this.prototype);
+    Base.addMethods = function (properties, proto, own_proto) {
+        if (toString.call(properties) === objectToString) {
+            proto = properties.prototype;
+            own_proto = this.prototype;
+
+            if (toString.call(proto) === objectToString) {
+                addProperties(proto, own_proto);
+
+                delete properties.prototype;
+                addProperties(properties, this);
+                properties.prototype = proto;
+
+            } else {
+                addProperties(properties, own_proto);
+            }
+        } else {
+            throw new InvalidClassDefinition("add methods to class");
+        }
     };
 
     /**
@@ -270,7 +327,11 @@
      * @param <object> properties
      */
     Base.prototype.addMethods = function (properties) {
-        addProperties(properties, this);
+        if (toString.call(properties) === objectToString) {
+            addProperties(properties, this);
+        } else {
+            throw new InvalidClassDefinition("add methods to instance");
+        }
     };
 
     // Public helper methods
@@ -282,6 +343,7 @@
     Class.fnSearch = fnSearch;
     Class.parentFnSearch = parentFnSearch;
     Class.errors = errors;
+    Class.version = "@VERSION";
 
     return Class;
 }());
