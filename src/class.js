@@ -129,6 +129,8 @@
             // populated with any properties 
             // from the parent class?
         var populate = parentFnSearch.test(current),
+        
+            setSelf = populate,
 
              // Needed to wrap the original function 
              // inside a new function to avoid adding
@@ -144,11 +146,6 @@
 
         return function () {
             var self = this,
-                // Are the current context storing a 
-                // property called ._parent
-                // That we need to revert after the 
-                // current function has been executed?
-                has_parent = self.hasOwnProperty("_parent"),
                 // Store the content in the ._parent property 
                 // so we can revert the object after 
                 // we're done if it's needed
@@ -160,7 +157,7 @@
             // Add the parent class's methods to 
             // 'this._parent' which enables you 
             // to call 'this._parent<method name>()'
-            if (populate === true) {
+            if (populate) {
                 // We only need to do this once
                 populate = false;
                 // Get the parent functions and add'em
@@ -177,20 +174,19 @@
             // class's method with the same name
             self._parent = realParent;
 
-            // Save a reference to the class instance on the parent
-            // function so the other methods from the 
-            // instance parent class can be called
-            self._parent[__self__] = self;
+            if (setSelf) {
+                // Save a reference to the class instance on the parent
+                // function so the other methods from the 
+                // instance parent class can be called.
+                // Only do this when needed, to optimize the performace
+                realParent[__self__] = self;
+            }
 
             // Execute the original function
             ret = current.apply(self, arguments);
 
             // Restore the context
-            if (has_parent === true) {
-                self._parent = tmp;
-            } else {
-                delete self._parent;
-            }
+            self._parent = tmp;
 
             return ret;
         };

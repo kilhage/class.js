@@ -125,7 +125,51 @@ test("Extending an instance", 10000, function(t){
     }
     
 });
+(function(){
 
+var A = $.Class({
+    fn: function () {}
+});
+
+var B = A.extend({
+    fn: function () {
+        this._parent();
+    },
+    fn2: function(){
+        this._parent.fn();
+    }
+});
+
+var b = new B();
+
+test("_parent function call", 100000, function (t) {
+    while(t--)
+        b.fn();
+});
+
+test("_parent.fn function call", 100000, function (t) {
+    while(t--)
+        b.fn2();
+});
+
+}());
+
+(function(){
+
+var A = function(){};
+A.prototype.fn = function(){};
+var B = function(){};
+B.prototype.fn = function(){
+    A.prototype.fn.apply(this, arguments);
+};
+var b = new B();
+
+test("_parent function call, reference", 100000, function (t) {
+    while(t--)
+        b.fn();
+});
+
+}());
     </script>
   </head>
   <body>

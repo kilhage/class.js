@@ -737,8 +737,6 @@ test("Helpers", function(){
     
     var c = new Cl2();
     
-    ok(!("_parent" in c), "Is the '_parent' property properly removed from the instance when it don't exists after a this._parent function call?");
-    
     c._parent = true;
     
     equals(c.fn(), 1);
