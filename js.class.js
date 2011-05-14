@@ -5,7 +5,7 @@
  * Released under the MIT License
  *--------------------------------------------*
  * Environment-release: js
- * Last Update: 2011-04-14 23:49:47
+ * Last Update: 2011-04-15 00:21:54
  * Version 1.1.0
  *--------------------------------------------*/
 /*jslint forin: true, onevar: true, debug: false, indent: 4
@@ -78,8 +78,8 @@ var Class = (function (undefined) {
      * @param <object> prop: The prototype that you want the object to have
      * @return <function>: Created class
      */
-    function Class(setStatic, properties) {
-        return Base.extend(setStatic, properties);
+    function Class(properties) {
+        return Base.extend(properties);
     }
 
     /**

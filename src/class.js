@@ -64,8 +64,8 @@
      * @param <object> prop: The prototype that you want the object to have
      * @return <function>: Created class
      */
-    function Class(setStatic, properties) {
-        return Base.extend(setStatic, properties);
+    function Class(properties) {
+        return Base.extend(properties);
     }
 
     /**
