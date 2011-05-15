@@ -21,3 +21,6 @@ jquery:
 
 dev:
 	node build/dev.js
+	
+init:
+	git submodule update --init --recursive;
