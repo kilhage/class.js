@@ -643,11 +643,14 @@ test("Error Handling", function(){
         "1": 1,
         "1.4": 1.4,
         "function(){}": function(){},
-        "Class({})": Class({}),
-        "window": window,
-        "document": document,
-        "<div />": document.createElement("div")
+        "Class({})": Class({})
     };
+    
+    if (typeof window !== "undefined") {
+        props.window = window;
+        props.document = document;
+        props["<div />"] = document.createElement("div");
+    }
     
     check("InvalidClassDefinition", function(){
         Class();
