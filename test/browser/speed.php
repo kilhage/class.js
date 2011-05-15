@@ -3,10 +3,10 @@
   <head>
     <title></title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <link rel="stylesheet" type="text/css" href="bench/jquery-benchmark-suit.css" />
+    <link rel="stylesheet" type="text/css" href="benchmark/jquery-benchmark-suit.css" />
     <script src="jquery.js"></script>
-    <script src="bench/jquery-benchmark.js"></script>
-    <script src="bench/jquery-benchmark-suit.js"></script>
+    <script src="benchmark/jquery-benchmark.js"></script>
+    <script src="benchmark/jquery-benchmark-suit.js"></script>
     <script src="../../jquery.class<?php echo isset($_GET["a"]) ? $_GET["a"] : "" ?>.js"></script>
     <script>
 
@@ -63,6 +63,35 @@ test("Building 20.000 static classes", 10000, function(t){
     }
 });
 
+var fns = {};
+var times = 50;
+while(times--)
+    fns["fn"+times] = function(){};
+
+test("Extending an instance", 10000, function(t){
+    
+    var instance = new ($.Class({
+            
+        init: function(){
+
+        }
+        
+    }));
+    
+    while(t--) {
+        instance.addMethods({
+            
+            init: function(){
+                this._parent();
+            }
+            
+        });
+    }
+    
+});
+
+module("Initalizing");
+
 test("Initalizing 100.000 objects using with the new keyword with a constructor", 100000, function(t){
     var b, a = $.Class({
         init: function(){}
@@ -99,32 +128,8 @@ test("Initalizing 100.000 objects using without the new keyword without a constr
 
 });
 
-var fns = {};
-var times = 50;
-while(times--)
-    fns["fn"+times] = function(){};
+module("Calling");
 
-test("Extending an instance", 10000, function(t){
-    
-    var instance = new ($.Class({
-            
-        init: function(){
-
-        }
-        
-    }));
-    
-    while(t--) {
-        instance.addMethods({
-            
-            init: function(){
-                this._parent();
-            }
-            
-        });
-    }
-    
-});
 (function(){
 
 var A = $.Class({
