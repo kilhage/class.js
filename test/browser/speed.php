@@ -92,7 +92,7 @@ test("Extending an instance", 10000, function(t){
 
 module("Initalizing");
 
-test("Initalizing 100.000 objects using with the new keyword with a constructor", 100000, function(t){
+test("Initalizing an object with the new keyword with a constructor", 100000, function(t){
     var b, a = $.Class({
         init: function(){}
     });
@@ -101,7 +101,7 @@ test("Initalizing 100.000 objects using with the new keyword with a constructor"
     }
 });
 
-test("Initalizing 100.000 objects using without the new keyword with a constructor", 100000, function(t){
+test("Initalizing an object without using the new keyword with a constructor", 100000, function(t){
     var b, a = $.Class({
         init: function(){}
     });
@@ -111,21 +111,26 @@ test("Initalizing 100.000 objects using without the new keyword with a construct
 
 });
 
-test("Initalizing 100.000 objects using with the new keyword without a constructor", 100000, function(t){
-    var b, a = $.Class({
-    });
+test("Initalizing an object with the new keyword without a constructor", 100000, function(t){
+    var b, a = $.Class({});
     while(t--) {
         b = new a();
     }
 });
 
-test("Initalizing 100.000 objects using without the new keyword without a constructor", 100000, function(t){
-    var b, a = $.Class({
-    });
+test("Initalizing an object without using the new keyword without a constructor", 100000, function(t){
+    var b, a = $.Class({});
     while(t--) {
         b = a();
     }
 
+});
+
+test("Initalizing an object with the new keyword, reference", 100000, function(t){
+    function A(){}
+    while(t--) {
+        new A();
+    }
 });
 
 module("Calling");
@@ -163,10 +168,12 @@ test("_parent.fn function call", 100000, function (t) {
 
 var A = function(){};
 A.prototype.fn = function(){};
+
 var B = function(){};
 B.prototype.fn = function(){
     A.prototype.fn.apply(this, arguments);
 };
+
 var b = new B();
 
 test("_parent function call, reference", 100000, function (t) {
