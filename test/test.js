@@ -218,7 +218,7 @@ test("Inheritance", function(){
     
     var t = 100, y = false, b = t;
     try {
-        Cls = {};
+        var Cls = {};
         Cls[t] = Class({
             n: 100,
 
