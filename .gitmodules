@@ -1,4 +1,7 @@
 [submodule "test/browser/benchmark"]
   path = test/browser/benchmark
   url = git@github.com:kilhage/jquery-benchmark.git
+[submodule "test/browser/qunit"]
+  path = test/browser/qunit
+  url = https://github.com/jquery/qunit.git
 
