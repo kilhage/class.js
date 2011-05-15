@@ -5,7 +5,7 @@
  * Released under the MIT License
  *--------------------------------------------*
  * Environment-release: jQuery
- * Last Update: 2011-04-15 00:21:54
+ * Last Update: 2011-04-15 17:20:35
  * Version 1.1.0
  *--------------------------------------------*/
 /*jslint forin: true, onevar: true, debug: false, indent: 4
@@ -169,37 +169,36 @@ jQuery.Class = (function (undefined) {
                 name,
                 fns;
 
-            // Add the parent class's methods to 
-            // 'this._parent' which enables you 
-            // to call 'this._parent<method name>()'
-            if (populate) {
-                // We only need to do this once
-                populate = false;
-                // Get the parent functions and add'em
-                fns = populator();
-                for (name in fns) {
-                    if (hasOwn.call(fns, name)) {
-                        // Add the parent functions
-                        realParent[name] = fns[name];
-                    }
-                }
-            }
-
             // Add a new ._parent() method that points to the parent 
             // class's method with the same name
             self._parent = realParent;
 
             if (setSelf) {
+                // Add the parent class's methods to 
+                // 'this._parent' which enables you 
+                // to call 'this._parent<method name>()'
+                if (populate) {
+                    // We only need to do this once
+                    populate = false;
+                    // Get the parent functions and add'em
+                    fns = populator();
+                    for (name in fns) {
+                        if (hasOwn.call(fns, name)) {
+                            // Add the parent functions
+                            realParent[name] = fns[name];
+                        }
+                    }
+                }
                 // Save a reference to the class instance on the parent
                 // function so the other methods from the 
                 // instance parent class can be called.
                 // Only do this when needed, to optimize the performace
                 realParent[__self__] = self;
             }
-
+            
             // Execute the original function
             ret = current.apply(self, arguments);
-
+            
             // Restore the context
             self._parent = tmp;
 
