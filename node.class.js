@@ -5,7 +5,7 @@
  * Released under the MIT License
  *--------------------------------------------*
  * Environment-release: node.js
- * Last Update: 2011-04-15 17:20:35
+ * Last Update: 2011-04-19 20:33:35
  * Version 1.1.0
  *--------------------------------------------*/
 /*jslint forin: true, onevar: true, debug: false, indent: 4
@@ -47,7 +47,7 @@ module.exports = (function (undefined) {
      */
     function InvalidClassDefinition(msg) {
         StdError.apply(this, arguments);
-        this.message = prefix + "::Unable to " + msg;
+        this.message = prefix + "::" + msg;
     }
 
     tmpProto = InvalidClassDefinition.prototype = new StdError();
@@ -194,10 +194,10 @@ module.exports = (function (undefined) {
                 // Only do this when needed, to optimize the performace
                 realParent[__self__] = self;
             }
-            
+
             // Execute the original function
             ret = current.apply(self, arguments);
-            
+
             // Restore the context
             self._parent = tmp;
 
@@ -249,11 +249,11 @@ module.exports = (function (undefined) {
     Base.extend = function (properties) {
             // Create the new class
         var Awesome = makeClass(), name, Src = this, 
-            prototype, parent = Src.prototype;
+            prototype, parent = Src.prototype, m;
             
-        if (toString.call(properties) !== objectToString) {
-            throw new InvalidClassDefinition((Src === Base ? "extend" : "create") + 
-                " class");
+        if (!properties || toString.call(properties) !== objectToString) {
+            m = "Unable to " + (Src === Base ? "extend" : "create") + " class";
+            throw new InvalidClassDefinition(m);
         }
 
         // Move all static properties
@@ -266,10 +266,17 @@ module.exports = (function (undefined) {
         /**
          * Does the input contains any static properties that should be added?
          */
-        if (toString.call(prototype = properties.prototype) === objectToString) {
-            delete properties.prototype;
-            addProperties(properties, Src, Awesome);
-            properties.prototype = properties = prototype;
+        if (properties.hasOwnProperty("prototype")) {
+            prototype = properties.prototype;
+            if (prototype && toString.call(prototype) === objectToString) {
+                delete properties.prototype;
+                addProperties(properties, Src, Awesome);
+                properties.prototype = properties = prototype;
+            } else {
+                m = "Invalid type on properties.prototype = " +
+                    prototype + ", literal object expected";
+                throw new InvalidClassDefinition(m);
+            }
         }
 
         // Create a shallow copy of the source prototype
@@ -308,11 +315,11 @@ module.exports = (function (undefined) {
      * @param <object> prop
      */
     Base.addMethods = function (properties, proto, own_proto) {
-        if (toString.call(properties) === objectToString) {
+        if (properties && toString.call(properties) === objectToString) {
             proto = properties.prototype;
             own_proto = this.prototype;
 
-            if (toString.call(proto) === objectToString) {
+            if (proto && toString.call(proto) === objectToString) {
                 addProperties(proto, own_proto);
 
                 delete properties.prototype;
@@ -323,7 +330,7 @@ module.exports = (function (undefined) {
                 addProperties(properties, own_proto);
             }
         } else {
-            throw new InvalidClassDefinition("add methods to class");
+            throw new InvalidClassDefinition("Unable to add methods to class");
         }
     };
 
@@ -336,10 +343,10 @@ module.exports = (function (undefined) {
      * @param <object> properties
      */
     Base.prototype.addMethods = function (properties) {
-        if (toString.call(properties) === objectToString) {
+        if (properties && toString.call(properties) === objectToString) {
             addProperties(properties, this);
         } else {
-            throw new InvalidClassDefinition("add methods to instance");
+            throw new InvalidClassDefinition("Unable to add methods to instance");
         }
     };
 

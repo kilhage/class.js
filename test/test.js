@@ -156,7 +156,7 @@ test("Basic", function(){
     try {
         check = c.name === b.name && b.name === val;
     } catch(e) {
-        console.log(e.message);
+        typeof console !== "undefined" && console.log && console.log(e.message);
         check = false;
     }
     
@@ -173,7 +173,7 @@ test("Inheritance", function(){
         fn: function() {
             return "first";
         },
-            
+        
         set: function(name, val){
             this[name] = val;
         }
@@ -278,7 +278,7 @@ test("Inheritance", function(){
         c = new Cls[t+1]();
         y = c.fn() == b && c.fn2() == b && Cls[t+1].fn() == b && Cls[t+1].fn2() == b;
     } catch(e) {
-        console.log(e);
+        typeof console !== "undefined" && console.log && console.log(e);
         y = false;
     }
     
@@ -646,12 +646,6 @@ test("Error Handling", function(){
         "Class({})": Class({})
     };
     
-    if (typeof window !== "undefined") {
-        props.window = window;
-        props.document = document;
-        props["<div />"] = document.createElement("div");
-    }
-    
     check("InvalidClassDefinition", function(){
         Class();
     }, "Class(); " + er);
@@ -814,7 +808,7 @@ test("RegExp's of pure evil", function() {
         var instance = new Cl();
     } catch(e) {
         valid = false;
-        console.log(e);
+        typeof console !== "undefined" && console.log && console.log(e);
         
     }
     
