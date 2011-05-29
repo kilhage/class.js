@@ -5,7 +5,7 @@
  * Released under the MIT License
  *--------------------------------------------*
  * Environment-release: node.js
- * Last Update: 2011-04-19 20:33:35
+ * Last Update: 2011-04-29 18:10:51
  * Version 1.1.0
  *--------------------------------------------*/
 /*jslint forin: true, onevar: true, debug: false, indent: 4
@@ -25,8 +25,7 @@ module.exports = (function (undefined) {
         },
 
         fnSearch = /\b_parent\b/,
-        fnSearchable = fnSearch.test(testFn),
-        parentFnSearch = fnSearchable ? (/\b_parent\b\./) : fnSearch = /.*/,
+        parentFnSearch = fnSearch.test(testFn) ? (/\b_parent\b\./) : fnSearch = /.*/,
         
         toString = Object.prototype.toString,
         hasOwn = Object.prototype.hasOwnProperty,
@@ -271,10 +270,10 @@ module.exports = (function (undefined) {
             if (prototype && toString.call(prototype) === objectToString) {
                 delete properties.prototype;
                 addProperties(properties, Src, Awesome);
-                properties.prototype = properties = prototype;
+                properties = properties.prototype = prototype;
             } else {
-                m = "Invalid type on properties.prototype = " +
-                    prototype + ", literal object expected";
+                m = "Invalid type on properties.prototype(" +
+                    prototype + "), literal object expected";
                 throw new InvalidClassDefinition(m);
             }
         }

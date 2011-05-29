@@ -11,8 +11,7 @@
         },
 
         fnSearch = /\b_parent\b/,
-        fnSearchable = fnSearch.test(testFn),
-        parentFnSearch = fnSearchable ? (/\b_parent\b\./) : fnSearch = /.*/,
+        parentFnSearch = fnSearch.test(testFn) ? (/\b_parent\b\./) : fnSearch = /.*/,
         
         toString = Object.prototype.toString,
         hasOwn = Object.prototype.hasOwnProperty,
@@ -257,10 +256,10 @@
             if (prototype && toString.call(prototype) === objectToString) {
                 delete properties.prototype;
                 addProperties(properties, Src, Awesome);
-                properties.prototype = properties = prototype;
+                properties = properties.prototype = prototype;
             } else {
-                m = "Invalid type on properties.prototype = " +
-                    prototype + ", literal object expected";
+                m = "Invalid type on properties.prototype(" +
+                    prototype + "), literal object expected";
                 throw new InvalidClassDefinition(m);
             }
         }
