@@ -325,7 +325,7 @@ Ext2.inherits(Ext); ->true
   If you don't and are declaring an object as a property inside the class-declaration
   all instances of this class will share this property.
 
-´´´javascript
+```javascript
 
 var MyClass = $.Class({
 
@@ -369,4 +369,4 @@ var c = new MyClass();
 c.shared_object.prop === 2;
 c.shared_object.prop === 1;
 
-´´´
+```
