@@ -66,6 +66,12 @@ function testModule(name) {
     }
 }
 
+function copy (p) {
+    function F(){}
+    F.prototype = p;
+    return new F();
+}
+
 /* The tests starts here */
 
 testModule("Initial Check");
@@ -471,7 +477,35 @@ test("Static", function(){
     
     equals(c.foo, Cl2.prototype.prop);
     
+});
+
+test("Input maintainance", function(){
     var props = {
+        prototype: {
+            a: 1
+        }
+    };
+    
+    var props2 = copy(props);
+    
+    var proto = props.prototype;
+    
+    Cl = Class(props);
+    
+    equal(proto, props.prototype, "Make sure that the input in Class() aren't modified");
+    
+    deepEqual(props, props2, "Make sure that the input in Class() aren't modified");
+    
+    var Cl = Class({
+        staticFn: function(){
+            return "value";
+        },
+        prototype: {
+            foo: "prop"
+        }
+    });
+    
+    props = {
         staticFn: function () {
             return this._parent() + "2";
         },
@@ -483,19 +517,35 @@ test("Static", function(){
         }
     };
     
-    var proto = props.prototype;
+    props2 = copy(props);
     
-    Cl2.addMethods(props);
+    proto = props.prototype;
     
-    equal(Cl2.staticFn(), "value2");
+    Cl.addMethods(props);
     
-    c = new Cl2();
+    equal(Cl.staticFn(), "value2");
+    
+    var c = new Cl();
     
     ok(isFunction(c.fn) && c.fn() === 1);
     
     equal(c.foo, "prop");
     
-    equal(props.prototype, proto);
+    equal(props.prototype, proto, "Make sure that the input in Cl.addMethods() aren't modified");
+    
+    deepEqual(props, props2, "Make sure that the input in Cl.addMethods() aren't modified");
+    
+    props = {
+        fn: function () {
+            return this._parent() + 1
+        }
+    };
+    
+    props2 = copy(props);
+    
+    c.addMethods(props);
+    
+    deepEqual(props, props2, "Make sure that the input in instance.addMethods() aren't modified");
 });
 
 test("Instance", function(){
@@ -654,6 +704,12 @@ test("Error Handling", function(){
         check("InvalidClassDefinition", function(){
             Class(prop);
         }, "Class(" + lbl + "); " + er);
+    });
+    
+    each(props, function (lbl, prop) {
+        check("InvalidClassDefinition", function(){
+            Class({prototype: prop});
+        }, "Class({prototype: " + lbl + "}); " + er);
     });
     
     var A = Class({});

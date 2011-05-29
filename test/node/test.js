@@ -18,4 +18,8 @@ global.equal = global.equals = function () {
     assert.equal.apply(assert, arguments);
 };
 
+global.deepEqual = global.deepEquals = function () {
+//    assert.deepEqual.apply(assert, arguments);
+};
+
 require("../test.js");
