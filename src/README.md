@@ -1,4 +1,4 @@
-[Javascript-Class](https://github.com/kilhage/javascript-class)
+[class.js](https://github.com/kilhage/javascript-class)
 ================================
 
 About
@@ -43,9 +43,9 @@ look at the tag with highest version-number...
 Examples:
 ----------------------------
 
-### [node.js](https://github.com/joyent/node) ###
+### [node.js](https://github.com/kilhage/class.js/blob/master/node.class.js) ###
 
-<pre>
+```javascript
 
 // You can name 'Class' whatever you want...
 var Class = require("path/to/the/lib/node.class.js");
@@ -58,13 +58,11 @@ var MyClass = Class({
 
 var instance = new MyClass();
 
-// ..
+```
 
-</pre>
+### [js](https://github.com/kilhage/class.js/blob/master/js.class.min.js) ###
 
-### js ###
-
-<pre>
+```javascript
 
 var MyClass = Class({
 
@@ -74,13 +72,11 @@ var MyClass = Class({
 
 var instance = new MyClass();
 
-// ..
+```
 
-</pre>
+### [jQuery](https://github.com/kilhage/class.js/blob/master/jquery.class.min.js) ###
 
-### [jQuery](https://github.com/jquery/jquery) ###
-
-<pre>
+```javascript
 
 var MyClass = jQuery.Class({
 
@@ -90,9 +86,7 @@ var MyClass = jQuery.Class({
 
 var instance = new MyClass();
 
-// ..
-
-</pre>
+```
 
 
 More detailed examples:
@@ -102,7 +96,7 @@ This examples belove is made with the jQuery release
 
 * Create a basic class...
 
-<pre>
+```javascript
 
 var YourClass = jQuery.Class({
     
@@ -123,12 +117,12 @@ var YourClass = jQuery.Class({
 
 });
 
-</pre>
+```
 
 * Initalizing
 read this: http://ejohn.org/blog/simple-class-instantiation/
 
-<pre>
+```javascript
 
 var object = new YourClass( "YES" );
 
@@ -139,14 +133,11 @@ var object = YourClass( "YES" );
 object.getMessage(); // --> "YES"
 
 object.doShit(); // --> call a method
-
-// and so on ...
-
-</pre>
+```
 
 * Create a new class that extends from an existing class.
 
-<pre>
+```javascript
 
 var ExtendedClass = YourClass.extend({
 
@@ -165,21 +156,19 @@ var ExtendedClass = YourClass.extend({
         // that returns this.message instead of null..
     },
 
-    /7 Change the behaviour of this
+    // Change the behaviour of this
     getMessage: function() {
         return null;
     }
 
-    // more methods ..
-
 });
 
-</pre>
+```
 
 * Add properties to a existing class prototype on the fly.
 * Only adds the properties to new instance'ses of the class
 
-<pre>
+```javascript
 
 ExtendedClass.addMethods({
 
@@ -195,15 +184,13 @@ ExtendedClass.addMethods({
         this._parent(); // call the doShit method that this method overwrites
     }
 
-    // and so on ...
-
 });
 
-</pre>
+```
 
 * Add properties to an class instance on the fly
 
-<pre>
+```javascript
 
 var Class = jQuery.Class({
 
@@ -233,19 +220,18 @@ var org_instance = new Class();
 
 org_instance.get() === "Oh";
 
-</pre>
+```
 
-* You also have the possibility to add static properties in an easy way
+* You also have the possibility to add static properties in an easy way.
 
-<pre>
+```javascript
 
 var Base = jQuery.Class({
 
     staticMethod: function() {
         return "Hi";
     },
-    
-    // These properties will be the instance-properties
+
     prototype: {
 
         init: function() {
@@ -285,13 +271,13 @@ var ext = new ExtendedClass();
 
 ext.getMessage() // -> "Hello there!"
 
-</pre>
+```
 
 * All instances will have a property called 'constructor' that always will be a
   reference to the class-constructor, this enables you to access the constructor-properties
   dynamically without hard-code the constructor name.
 
-<pre>
+```javascript
 
 var Class = jQuery.Class({
 
@@ -311,12 +297,12 @@ var instance = new Class();
 
 instance.get() -> "hi there"
 
-</pre>
+```
 
 * All classes will have static function called "inherits"
   that can be used to check if a class inherits from another class
 
-<pre>
+```javascript
 
 var Base = jQuery.Class({});
 var Ext = Base.extend({});
@@ -332,4 +318,53 @@ Ext2.inherits(Base); -> true
 
 Ext2.inherits(Ext); ->true
 
-</pre>
+```
+
+* One thing to think of when you are working with objects/arrays inside your instances
+  is that you always should declare these inside the constructor.
+  If you don't and are declaring an object as a property inside the class-declaration
+  all instances of this class will share this property.
+
+´´´javascript
+var MyClass = $.Class({
+
+    prototype: {
+        // Avoid this as long as the behavior is intended
+        shared_object: {
+            prop: 1
+        },
+
+        init: function () {
+            // A true instance property
+            this.unshared_object = {
+                prop: 1
+            };
+        }
+
+    }
+
+});
+
+var a = new MyClass();
+var b = new MyClass();
+
+// This will change shared_object in all
+// instances of MyClass the exists today and 
+// that will be created
+a.shared_object.prop = 2;
+
+a.shared_object.prop === 2;
+b.shared_object.prop === 2;
+
+// This however will only change 'unshared_object'
+// in only instance 'a'.
+a.unshared_object.prop = 2;
+
+a.shared_object.prop === 2;
+b.unshared_object.prop === 1;
+
+var c = new MyClass();
+
+c.shared_object.prop === 2;
+c.shared_object.prop === 1;
+´´´
