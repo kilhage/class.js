@@ -45,7 +45,7 @@ Examples:
 
 ### [node.js](https://github.com/joyent/node) ###
 
-<pre>
+```javascript
 
 // You can name 'Class' whatever you want...
 var Class = require("path/to/the/lib/node.class.js");
@@ -60,7 +60,7 @@ var instance = new MyClass();
 
 // ..
 
-</pre>
+```
 
 ### js ###
 
