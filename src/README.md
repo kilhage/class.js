@@ -326,6 +326,7 @@ Ext2.inherits(Ext); ->true
   all instances of this class will share this property.
 
 ´´´javascript
+
 var MyClass = $.Class({
 
     prototype: {
@@ -367,4 +368,5 @@ var c = new MyClass();
 
 c.shared_object.prop === 2;
 c.shared_object.prop === 1;
+
 ´´´
