@@ -8,34 +8,34 @@ About
  * Last Updated: 2011-04-29 18:10:51
  * Current version: 1.1.0
 
-This library allows you to create Class-like functions in an very effective and nice way.
+This library allows you to create Class-like functions in a very effective and nice way.
 I found this very useful when working with large projects needing structure, scalability 
 and all the other stuff that the ordinary object oriented model gives you in other languages, 
-which javascript is kind of missing natively(at least in an easy way).
+which JavaScript is kind of missing natively (at least in an easy way).
 
 This project is inspired by John Resig's 
 "Simple JavaScript Inheritance": http://ejohn.org/blog/simple-javascript-inheritance/
 and "makeClass": http://ejohn.org/blog/simple-class-instantiation/
 They have been integrated with each other and improved in many ways..
 
-Iv'e made alot of unit testing on this that covers all the functionality, and many ways to use this.
+I've made a lot of unit testing on this that covers all the functionality, and many ways to use this.
 Everything around this is also very performance optimized.
 
 __The library comes in 3 environment releases:__
 
  * js: Works for any browser environment
- * node.js: Designed for node.js environments
+ * node.js: Designed for node.js environment
  * jQuery: Designed as a jQuery-plugin
 
-The source code between these are the same, the only difference are how there are built.
+The source code between these is the same, the only difference is how they are built.
 
-It don't have any dependencies and works in all environments.
-Iv'e runned the unit tests in following environments:
+It doesn't have any dependencies and works in all environments.
+I've ran the unit tests in following environments:
 
  * Browsers: IE 7,8, Firefox, Chrome
  * node.js versions: 0.5
 
-If you should find any problems, report a bug/make a pull-requests...
+If you find any problems, report a bug, make a pull-request...
 
 The master branch is kind of work in progress, to get the lastest stable version
 look at the tag with highest version-number...
@@ -92,7 +92,7 @@ var instance = new MyClass();
 More detailed examples:
 ----------------------------
 
-This examples belove is made with the jQuery release
+This examples below is made with the jQuery release
 
 * Create a basic class...
 
