@@ -277,6 +277,9 @@
 
         // Add the final prototype to the created class
         Awesome.prototype = prototype;
+        
+        // Add the parent constructor to the constructor so we can traverse the Inheritance tree
+		Awesome.constructor._parent = Src;
 
         /**
          * Checks if a class inherits from another class
