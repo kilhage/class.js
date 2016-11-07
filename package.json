@@ -1,7 +1,7 @@
 {
   "name": "glooby-class",
   "version": "1.1.0",
-  "description": "[class.js](https://github.com/kilhage/class.js) ================================",
+  "description": "Low level javascript library that helps you to create and work with classes/objects",
   "main": "node.class.js",
   "directories": {
     "test": "test"
@@ -15,7 +15,9 @@
   },
   "keywords": [
     "class",
-    "oop"
+    "oop",
+    "glooby",
+    "kilhage"
   ],
   "author": "Emil Kilhage <emil.kilhage@glooby.com>",
   "license": "MIT",

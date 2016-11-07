@@ -8,7 +8,9 @@
   "main": "node.class.js",
   "keywords": [
     "class",
-    "oop"
+    "oop",
+    "glooby",
+    "kilhage"
   ],
   "license": "MIT",
   "ignore": [
