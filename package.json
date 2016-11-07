@@ -1,6 +1,6 @@
 {
   "name": "glooby-class",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Low level javascript library that helps you to create and work with classes/objects",
   "main": "node.class.js",
   "directories": {
