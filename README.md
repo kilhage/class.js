@@ -370,3 +370,6 @@ c.shared_object.prop === 2;
 c.shared_object.prop === 1;
 
 ```
+
+[www.glooby.com](https://www.glooby.com)
+[www.glooby.se](https://www.glooby.se)
