@@ -1,0 +1,21 @@
+{
+  "name": "class.js",
+  "version": "1.1.0",
+  "homepage": "https://github.com/kilhage/class.js",
+  "authors": [
+    "Emil Kilhage <emil.kilhage@glooby.com>"
+  ],
+  "main": "node.class.js",
+  "keywords": [
+    "class",
+    "oop"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

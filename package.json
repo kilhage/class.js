@@ -1,0 +1,26 @@
+{
+  "name": "class.js",
+  "version": "1.1.0",
+  "description": "[class.js](https://github.com/kilhage/class.js) ================================",
+  "main": "node.class.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "test/node/test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kilhage/class.js.git"
+  },
+  "keywords": [
+    "class",
+    "oop"
+  ],
+  "author": "Emil Kilhage <emil.kilhage@glooby.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/kilhage/class.js/issues"
+  },
+  "homepage": "https://github.com/kilhage/class.js#readme"
+}

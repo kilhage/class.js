@@ -1,4 +1,4 @@
-[class.js](https://github.com/kilhage/javascript-class)
+[class.js](https://github.com/kilhage/class.js)
 ================================
 
 About
@@ -9,11 +9,11 @@ About
  * Current version: 1.1.0
 
 This library allows you to create Class-like functions in a very effective and nice way.
-I found this very useful when working with large projects needing structure, scalability 
-and all the other stuff that the ordinary object oriented model gives you in other languages, 
+I found this very useful when working with large projects needing structure, scalability
+and all the other stuff that the ordinary object oriented model gives you in other languages,
 which JavaScript is kind of missing natively (at least in an easy way).
 
-This project is inspired by John Resig's 
+This project is inspired by John Resig's
 "Simple JavaScript Inheritance": http://ejohn.org/blog/simple-javascript-inheritance/
 and "makeClass": http://ejohn.org/blog/simple-class-instantiation/
 They have been integrated with each other and improved in many ways..
@@ -99,7 +99,7 @@ This examples below is made with the jQuery release
 ```javascript
 
 var YourClass = jQuery.Class({
-    
+
     // Constructor is moved here..
     init: function( message ) {
         this.message = message;
@@ -126,7 +126,7 @@ read this: http://ejohn.org/blog/simple-class-instantiation/
 
 var object = new YourClass( "YES" );
 
-// The new keyword isn't needed, but recommended since its 
+// The new keyword isn't needed, but recommended since its
 // faster and makes your code more readlable..
 var object = YourClass( "YES" );
 
@@ -149,10 +149,10 @@ var ExtendedClass = YourClass.extend({
         // code ..
         this._parent(); // --> this will call the parent doShit method in the "YourClass" class
         // code..
-        
+
         // you could also do like this:
-        this._parent.getMessage(); 
-        // which calls the parent getMessage-method 
+        this._parent.getMessage();
+        // which calls the parent getMessage-method
         // that returns this.message instead of null..
     },
 
@@ -284,7 +284,7 @@ var Class = jQuery.Class({
     property: "hi there",
 
     prototype: {
-        
+
         get: function() {
             return this.constructor.property;
         }
@@ -350,7 +350,7 @@ var a = new MyClass();
 var b = new MyClass();
 
 // This will change shared_object in all
-// instances of MyClass the exists today and 
+// instances of MyClass the exists today and
 // that will be created
 a.shared_object.prop = 2;
 
